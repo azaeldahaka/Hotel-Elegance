@@ -37,14 +37,14 @@ Deno.serve(async (req) => {
     const user = users[0];
 
     // Hash de la contraseña ingresada para comparar
-    /* const encoder = new TextEncoder();
+    const encoder = new TextEncoder();
     const data = encoder.encode(password);
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashedPassword = hashArray.map(b => b.toString(16).padStart(2, '0')).join(''); */
+    const hashedPassword = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
     // Verificar contraseña hasheada
-    if (user.password !== password) {
+    if (user.password !== hashedPassword) {
       throw new Error('Credenciales inválidas');
     }
 
