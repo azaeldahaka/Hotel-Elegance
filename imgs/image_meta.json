@@ -1,0 +1,938 @@
+[
+  {
+    "query": "Elegant fine dining restaurant in luxury hotel with sophisticated ambiance",
+    "image_info": {
+      "url": "https://images.rosewoodhotels.com/is/image/rwhg/Carlyle_Dowlings_03:TALL-LARGE-9-16",
+      "file_path": "/workspace/imgs/elegant_luxury_hotel_fine_dining_restaurant.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 145488,
+      "width": 768,
+      "height": 1024,
+      "total_pixels": 786432,
+      "basic_score": 0.9057670586240024
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 100.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 95.0,
+      "explanation": "The image perfectly matches the search query and prompt, depicting an exceptionally elegant fine dining restaurant with a sophisticated ambiance, likely within a luxury hotel. The clarity, composition, and lighting are outstanding, creating a highly appealing visual.",
+      "file_name": "elegant_luxury_hotel_fine_dining_restaurant.jpg",
+      "caption": "A lavish and elegant fine dining restaurant interior, possibly within a luxury hotel, showcasing a grand crystal chandelier, ornate mirrored walls, vibrant abstract artwork, and plush red leather banquettes alongside dark upholstered chairs. Tables are meticulously set with sparkling glassware, white plates, and candles, creating a warm, sophisticated, and inviting atmosphere.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Elegant fine dining restaurant in luxury hotel with sophisticated ambiance",
+    "image_info": {
+      "url": "https://interiordesign.net/wp-content/uploads/2021/08/jouin-manku-auberge-de-lill-dining-area-white-1217-hero.jpg",
+      "file_path": "/workspace/imgs/luxury_hotel_fine_dining_restaurant_elegant_modern_interior.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 148320,
+      "width": 1170,
+      "height": 550,
+      "total_pixels": 643500,
+      "basic_score": 0.869433772158792
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 98.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 95.0,
+      "explanation": "The image is highly relevant, perfectly capturing an elegant and sophisticated fine dining restaurant that aligns well with the concept of a luxury hotel setting. The clarity is excellent, showcasing all details, and there are no visible watermarks. The composition and lighting are professional and inviting.",
+      "file_name": "luxury_hotel_fine_dining_restaurant_elegant_modern_interior.jpg",
+      "caption": "An elegant and sophisticated fine dining restaurant within a luxury hotel, showcasing a modern interior design. The spacious room features multiple round tables immaculately set with crisp white tablecloths, stylish light-colored chairs, and gleaming glassware. A unique, illuminated partition made of vertical glass rods creates a striking design element, complementing the light blue carpet with subtle wavy patterns. Large windows on the left provide ample natural light and a pleasant view, enhancing the refined ambiance of the upscale dining experience.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Elegant fine dining restaurant in luxury hotel with sophisticated ambiance",
+    "image_info": {
+      "url": "https://image-tc.galaxy.tf/wijpeg-12gei2ncftpzgnqns9w0yq6zm/marquis-cabos-124-standard_panoramic.jpg?crop=0%2C334%2C1777%2C666&width=1920",
+      "file_path": "/workspace/imgs/elegant_fine_dining_luxury_hotel_restaurant.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 168609,
+      "width": 1777,
+      "height": 666,
+      "total_pixels": 1183482,
+      "basic_score": 0.8693518574957808
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 95.0,
+      "clarity_score": 90.0,
+      "watermark_score": 100.0,
+      "overall_score": 90.0,
+      "explanation": "The image perfectly captures an elegant fine dining restaurant with a sophisticated ambiance, strongly implying a luxury hotel setting. The decor, table settings, and overall mood align exceptionally well with the search query and prompt. The image is clear, well-composed, and free of any watermarks.",
+      "file_name": "elegant_fine_dining_luxury_hotel_restaurant.jpg",
+      "caption": "An elegantly set fine dining restaurant within a luxury hotel, featuring a sophisticated interior with blue walls, ornate gold-framed paintings of oranges, and a dark accent wall adorned with decorative metallic plates and discs. Tables are draped with white tablecloths and set with multiple glasses and refined place settings, complemented by chic patterned dining chairs.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Elegant fine dining restaurant in luxury hotel with sophisticated ambiance",
+    "image_info": {
+      "url": "https://www.venetianlasvegas.com/adobe/dynamicmedia/deliver/dm-aid--08bd4846-22b9-4c34-bef8-c5944eb8e4b0/dining-room-1-1920x1080.jpg?quality=64&preferwebp=true",
+      "file_path": "/workspace/imgs/elegant_fine_dining_luxury_hotel_restaurant_ambiance.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 163042,
+      "width": 1280,
+      "height": 720,
+      "total_pixels": 921600,
+      "basic_score": 0.9359956208587615
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 98.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 96.0,
+      "explanation": "The image perfectly matches the search query and prompt, depicting an elegant and sophisticated fine dining restaurant with a luxurious ambiance that would be fitting for a high-end hotel. The clarity is excellent, showcasing intricate details of the decor and lighting, and there are no visible watermarks. The composition is professional and visually appealing.",
+      "file_name": "elegant_fine_dining_luxury_hotel_restaurant_ambiance.jpg",
+      "caption": "A panoramic view of an opulent and elegantly designed fine dining restaurant, featuring a grand, multi-tiered ceiling fixture and intricate industrial-chic lighting. The dining area is set with numerous tables, each meticulously prepared with white place settings and crystal glassware. Plush booth seating lines the walls, complemented by modern, dark wooden chairs around circular and rectangular tables. The walls are adorned with textured finishes, artistic murals, and decorative brickwork, contributing to a sophisticated and inviting atmosphere typical of a luxury hotel restaurant.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Elegant fine dining restaurant in luxury hotel with sophisticated ambiance",
+    "image_info": {
+      "url": "https://d3h1lg3ksw6i6b.cloudfront.net/media/image/2021/07/08/c757d24db5884454ad98ce963383355e_Alain-Ducasse-Macau.jpg",
+      "file_path": "/workspace/imgs/luxury_hotel_fine_dining_restaurant_elegant_ambiance.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 276668,
+      "width": 1120,
+      "height": 630,
+      "total_pixels": 705600,
+      "basic_score": 0.9202386086701835
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 100.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 98.0,
+      "explanation": "The image perfectly matches the search query and prompt, depicting an extremely elegant fine dining restaurant in a luxury hotel with a sophisticated ambiance. The clarity is excellent, and there are no watermarks. The composition and lighting are professional and highlight the grandeur of the space.",
+      "file_name": "luxury_hotel_fine_dining_restaurant_elegant_ambiance.jpg",
+      "caption": "A wide, expansive view of an exceptionally elegant fine dining restaurant located within a luxury hotel. The room features high ceilings with intricate gold and white decorative moldings, large arched windows providing ample natural light, and ornate chandeliers. Numerous round tables are impeccably set with white linens, fine glassware, and comfortable golden-hued chairs. In the center, a stylish buffet or service station displays an assortment of bread and pastries, contributing to the sophisticated and inviting ambiance.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Luxury hotel infinity pool on rooftop with panoramic views",
+    "image_info": {
+      "url": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/389877955.jpg?k=aabddccd0b4c4ebc76a832e31fb48ed18db67d174e949bc80409e519960e9807&o=&hp=1",
+      "file_path": "/workspace/imgs/luxury_rooftop_infinity_pool_panoramic_ocean_city_view.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 80180,
+      "width": 1024,
+      "height": 683,
+      "total_pixels": 699392,
+      "basic_score": 0.9011031132477321
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 95.0,
+      "clarity_score": 90.0,
+      "watermark_score": 100.0,
+      "overall_score": 95.0,
+      "explanation": "The image perfectly matches the search query and prompt, depicting a luxurious rooftop infinity pool with stunning panoramic views of the ocean and city. The clarity is excellent, and there are no watermarks. The composition and lighting are professional and highly appealing.",
+      "file_name": "luxury_rooftop_infinity_pool_panoramic_ocean_city_view.jpg",
+      "caption": "A breathtaking rooftop infinity pool featuring sparkling blue water, overlooking a vast panoramic vista of the ocean, a distant city skyline, and green parklands under a clear azure sky. The contemporary design includes sleek wooden decking and a stylish outdoor bar area with modern seating, embodying a luxurious hotel or resort experience.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Luxury hotel infinity pool on rooftop with panoramic views",
+    "image_info": {
+      "url": "https://d2e5ushqwiltxm.cloudfront.net/wp-content/uploads/sites/92/2024/10/22090249/Pool-1-1500x1000.jpg",
+      "file_path": "/workspace/imgs/luxury_rooftop_infinity_pool_panoramic_city_view.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 231651,
+      "width": 1500,
+      "height": 1000,
+      "total_pixels": 1500000,
+      "basic_score": 0.888765549555916
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 98.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 95.0,
+      "explanation": "The image perfectly matches the search query and prompt, showcasing a luxurious rooftop infinity pool with a panoramic city view. It is clear, well-composed, and free of watermarks.",
+      "file_name": "luxury_rooftop_infinity_pool_panoramic_city_view.jpg",
+      "caption": "A stunning panoramic view of a luxury hotel's rooftop infinity pool, featuring comfortable lounge seating with orange and patterned cushions, overlooking a sprawling city skyline under a clear blue sky. The pool's edge blends seamlessly with the horizon, creating a breathtaking visual experience.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Luxury hotel infinity pool on rooftop with panoramic views",
+    "image_info": {
+      "url": "https://cf.bstatic.com/xdata/images/hotel/max1024x768/653719184.jpg?k=8b8930a6433a70d2f5fb707885570467a39fd4303dc665b50c18ade5d74f955f&o=&hp=1",
+      "file_path": "/workspace/imgs/luxury_rooftop_infinity_pool_sunset_panoramic_view.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 69693,
+      "width": 1024,
+      "height": 569,
+      "total_pixels": 582656,
+      "basic_score": 0.8739342221409632
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 100.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 98.0,
+      "explanation": "The image perfectly matches the search query and prompt, showcasing a luxurious rooftop infinity pool with a panoramic view of a coastal town and the ocean at sunset. The clarity is excellent, and there are no watermarks. The composition, lighting, and vibrant colors contribute to a very high overall quality.",
+      "file_name": "luxury_rooftop_infinity_pool_sunset_panoramic_view.jpg",
+      "caption": "A breathtaking panoramic view from a luxury hotel's rooftop infinity pool at sunset, overlooking a vibrant coastal town and the expansive ocean. The serene blue water of the pool perfectly reflects the dramatic orange, yellow, and blue hues of the sky, adorned with scattered clouds, creating an idyllic and luxurious scene.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Luxury hotel infinity pool on rooftop with panoramic views",
+    "image_info": {
+      "url": "https://i0.wp.com/theluxurytravelexpert.com/wp-content/uploads/2015/03/w-santiago-chile.jpg?ssl=1",
+      "file_path": "/workspace/imgs/luxury_hotel_rooftop_infinity_pool_panoramic_city_view_twilight.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 157685,
+      "width": 970,
+      "height": 546,
+      "total_pixels": 529620,
+      "basic_score": 0.8706135810657559
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 100.0,
+      "clarity_score": 90.0,
+      "watermark_score": 100.0,
+      "overall_score": 95.0,
+      "explanation": "The image perfectly matches the search query and prompt, showcasing a luxury hotel rooftop infinity pool with breathtaking panoramic city views at twilight. The composition, lighting, and overall quality are excellent, making it a highly professional and desirable image. There are no watermarks.",
+      "file_name": "luxury_hotel_rooftop_infinity_pool_panoramic_city_view_twilight.jpg",
+      "caption": "A magnificent twilight view of a luxury hotel's rooftop infinity pool, offering a stunning panoramic vista of a sprawling city and distant mountains. The modern wooden deck features elegant cabanas with lounge chairs and soft lighting from decorative lanterns, creating an inviting and serene atmosphere. The illuminated pool beautifully reflects the surrounding urban landscape.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Luxury hotel infinity pool on rooftop with panoramic views",
+    "image_info": {
+      "url": "https://www.inspiringtravel.co.uk/other-shores/wp-content/uploads/2022/04/Miami-2-3.jpg",
+      "file_path": "/workspace/imgs/luxury_hotel_infinity_pool_panoramic_ocean_view_twilight.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 85829,
+      "width": 700,
+      "height": 400,
+      "total_pixels": 280000,
+      "basic_score": 0.7853248125728973
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 95.0,
+      "clarity_score": 98.0,
+      "watermark_score": 100.0,
+      "overall_score": 98.0,
+      "explanation": "The image is highly relevant, depicting a luxurious infinity pool at what appears to be a high-end hotel or resort, offering panoramic ocean views at twilight. The clarity and composition are excellent, and there are no watermarks. While 'rooftop' isn't explicitly confirmed as a tall building, it presents an elevated, open-air luxury pool deck matching the spirit of the query.",
+      "file_name": "luxury_hotel_infinity_pool_panoramic_ocean_view_twilight.jpg",
+      "caption": "A breathtaking twilight photograph showcasing a luxurious infinity pool at a high-end hotel or resort, featuring modern lounge beds with plush blue pillows. The pool deck offers a panoramic view of the tranquil ocean under a dramatic, cloudy sky, with warm accent lighting illuminating the serene evening ambiance.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Luxury hotel suite living room with elegant furniture and sophisticated decor",
+    "image_info": {
+      "url": "https://lovebeverlyhills.com/uploads/cache/Image/BlockFeaturedBlock/id/8188/2e1290f576f291d808564d70d890f8b1d79d61b4.jpg",
+      "file_path": "/workspace/imgs/luxury_hotel_suite_living_room_elegant_decor.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 124553,
+      "width": 900,
+      "height": 600,
+      "total_pixels": 540000,
+      "basic_score": 0.8705274666626618
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 98.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 97.0,
+      "explanation": "The image perfectly matches the search query and prompt, showcasing a luxurious and elegant living room with sophisticated decor and high-end furniture. The clarity is excellent, and there are no watermarks. The composition and lighting are professional, making it an outstanding visual representation of a high-end hotel suite.",
+      "file_name": "luxury_hotel_suite_living_room_elegant_decor.jpg",
+      "caption": "A stunning, spacious luxury living room, possibly within a high-end hotel suite, featuring a large, elegant cream-colored sectional sofa adorned with decorative pillows in neutral and muted tones. Two organically shaped, light wood coffee tables with a unique textured surface sit on a plush, light-colored rug. In the background, large windows with floor-to-ceiling drapes overlook an urban balcony, while a black grand piano, a traditional fireplace with mantel, and a framed artwork complete the sophisticated decor. The room is brightly lit, showcasing an atmosphere of refined comfort and luxury.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Luxury hotel suite living room with elegant furniture and sophisticated decor",
+    "image_info": {
+      "url": "https://www.theplazany.com/wp-content/uploads/2025/05/2025-royal-suite-living-room-1151x500-1.jpg",
+      "file_path": "/workspace/imgs/luxury_hotel_suite_living_room_elegant_decor.jpg_b6",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 405591,
+      "width": 1151,
+      "height": 500,
+      "total_pixels": 575500,
+      "basic_score": 0.8619356639803486
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 95.0,
+      "clarity_score": 100.0,
+      "watermark_score": 100.0,
+      "overall_score": 95.0,
+      "explanation": "The image is an excellent match for the search query and prompt, showcasing a highly luxurious and elegant living room with sophisticated decor. It perfectly embodies the desired aesthetic, is crystal clear, well-composed, and free of watermarks.",
+      "file_name": "luxury_hotel_suite_living_room_elegant_decor.jpg",
+      "caption": "A wide-angle view of an opulent and elegant living room, reminiscent of a luxury hotel suite. The room features a grand crystal chandelier, ornate wall moldings, and plush furnishings. A light-colored sofa with orange and dark patterned throw pillows faces a large white marble coffee table adorned with books and a fresh floral arrangement. Four exquisite armchairs, two with unique gold bamboo-style frames and two with elegant rounded backs, provide additional seating. Tall, neutral-toned curtains frame large windows, and warm light emanates from sconces. In the background, an archway leads to a sophisticated dining area with another chandelier, while a console table topped with decorative blue and white vases and a round gold-framed mirror enhances the refined ambiance.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Luxury hotel suite living room with elegant furniture and sophisticated decor",
+    "image_info": {
+      "url": "https://lovebeverlyhills.com/uploads/cache/Image/BlockFeaturedBlock/id/8189/4887a678b011e6ce4b577d4db08ab0981580da9e.jpg",
+      "file_path": "/workspace/imgs/luxury_hotel_suite_living_room_elegant_design.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 100150,
+      "width": 900,
+      "height": 600,
+      "total_pixels": 540000,
+      "basic_score": 0.8678249286443028
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 100.0,
+      "clarity_score": 98.0,
+      "watermark_score": 100.0,
+      "overall_score": 99.0,
+      "explanation": "The image perfectly matches the search query and prompt, depicting a luxurious and elegant hotel suite living room with sophisticated decor and high-end furniture. The clarity is excellent, with sharp details and professional lighting. There are no visible watermarks. The composition is well-balanced, showcasing the room's spaciousness and design.",
+      "file_name": "luxury_hotel_suite_living_room_elegant_design.jpg",
+      "caption": "A sophisticated luxury hotel suite living room, featuring a plush off-white L-shaped sectional sofa adorned with cream and brown throw pillows. In the center, a unique dark wood yin-yang-shaped coffee table holds a vase of white hydrangeas. To the left, a stylish lounge chair with a light brown cushion complements a built-in shelving unit and a desk area. Large floor-to-ceiling windows reveal a scenic panoramic city view, framed by elegant drapes. The room is completed with a subtly patterned area rug and a refined, neutral color palette.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Luxury hotel suite living room with elegant furniture and sophisticated decor",
+    "image_info": {
+      "url": "https://www.venetianlasvegas.com/adobe/dynamicmedia/deliver/dm-aid--25550ada-c21c-4096-bf5c-b65b3aaf701d/living_area_1_1200x800.jpg",
+      "file_path": "/workspace/imgs/luxury_hotel_suite_living_room_red_sofa_city_view_elegant_decor.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 121934,
+      "width": 1200,
+      "height": 800,
+      "total_pixels": 960000,
+      "basic_score": 0.9352271912397071
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 98.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 97.0,
+      "explanation": "The image flawlessly depicts a luxury hotel suite living room, showcasing elegant furniture, sophisticated decor, and a stunning city view through a large arched window. Its high clarity, professional composition, and absence of watermarks contribute to its exceptional quality and perfect alignment with the prompt and query.",
+      "file_name": "luxury_hotel_suite_living_room_red_sofa_city_view_elegant_decor.jpg",
+      "caption": "A brightly lit, luxurious hotel suite living room features a rich red sectional sofa adorned with patterned and blue throw pillows. A round, gold-toned coffee table with a glass top sits in front of the sofa, holding decorative books. To the left, a sleek black side table with gold accents supports a modern, half-moon shaped lamp and a red book. The room boasts elegant wall molding and a large, arched window offering a panoramic view of a city skyline with distant mountains under a clear blue sky. Neutral-toned curtains hang by the window, and a light-colored rug with an intricate gold and red pattern covers the floor. A modern abstract painting hangs on the wall, illuminated by a brass picture light.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Elegant hotel double room with modern design and comfortable beds",
+    "image_info": {
+      "url": "https://img.freepik.com/free-photo/3d-rendering-luxury-modern-bedroom-suite-hotel-with-tv-cabinet_105762-2276.jpg?semt=ais_hybrid&w=740&q=80",
+      "file_path": "/workspace/imgs/elegant_modern_hotel_double_bedroom_interior.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 66876,
+      "width": 740,
+      "height": 493,
+      "total_pixels": 364820,
+      "basic_score": 0.8123567732745636
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 95.0,
+      "clarity_score": 98.0,
+      "watermark_score": 100.0,
+      "overall_score": 97.0,
+      "explanation": "The image is highly relevant to the search query and prompt, showcasing an elegant and modern hotel bedroom. The clarity and resolution are excellent, with sharp details and good lighting. There are no watermarks present, and the overall composition and professional quality are outstanding.",
+      "file_name": "elegant_modern_hotel_double_bedroom_interior.jpg",
+      "caption": "An elegant and luxurious hotel bedroom featuring a large, comfortable bed with white and brown bedding and an assortment of pillows. The room boasts a modern design with dark wood trim on white walls, rich hardwood flooring, and a patterned area rug. A large window with flowing curtains provides natural light, complemented by stylish wall sconces and bedside lamps. A minimalist dark wood and marble-topped dresser with a mirror or TV above it sits on the left, while a sleek bedside table with a lamp and decorative items adorns the right.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Elegant hotel double room with modern design and comfortable beds",
+    "image_info": {
+      "url": "https://image.made-in-china.com/202f0j00DMCkiVNFyObU/Modern-Design-Hotel-Bedroom-Luxury-Furniture-Double-King-Bed-for-Hotel-Project.webp",
+      "file_path": "/workspace/imgs/elegant_modern_hotel_double_room_bed.jpg",
+      "img_format": "WEBP",
+      "mode": "RGB",
+      "file_size": 49402,
+      "width": 550,
+      "height": 550,
+      "total_pixels": 302500,
+      "basic_score": 0.8000894739637262
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 95.0,
+      "clarity_score": 90.0,
+      "watermark_score": 100.0,
+      "overall_score": 92.0,
+      "explanation": "The image perfectly matches the search query and prompt, showcasing an elegant and modern hotel room with a comfortable-looking bed. The clarity is excellent, and there are no watermarks. The composition and lighting contribute to a high overall quality.",
+      "file_name": "elegant_modern_hotel_double_room_bed.jpg",
+      "caption": "A stylish and elegant hotel double room, featuring a large, comfortable bed with crisp white linens and a green bed runner, flanked by modern wooden nightstands. The room's design blends contemporary aesthetics with traditional artistic touches, including a delicate wall mural depicting birds on branches and a scenic landscape painting in the corner. Recessed lighting illuminates the space, which also includes a red chaise lounge and vibrant orange and grey curtains, creating a warm and inviting ambiance.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Elegant hotel double room with modern design and comfortable beds",
+    "image_info": {
+      "url": "https://image.made-in-china.com/202f0j00gzmkMVSsPAqK/Euro-Modern-Style-Italian-Design-Hotel-Bedroom-Set-Luxury-Beds-Metal-Leather-1-8-M-Double-up-Holstered-Bed.webp",
+      "file_path": "/workspace/imgs/elegant_modern_hotel_double_bedroom_luxury_bed.jpg",
+      "img_format": "WEBP",
+      "mode": "RGB",
+      "file_size": 53768,
+      "width": 542,
+      "height": 550,
+      "total_pixels": 298100,
+      "basic_score": 0.7991634238541141
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 95.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 95.0,
+      "explanation": "The image is highly relevant, depicting an elegant, modern double bed in a room that strongly resembles a high-end hotel room. The clarity is excellent, showcasing all details, and there are no watermarks. The composition and lighting are professional, contributing to a very high overall quality.",
+      "file_name": "elegant_modern_hotel_double_bedroom_luxury_bed.jpg",
+      "caption": "A sophisticated and modern hotel double room featuring a large, elegant tufted bed with luxurious grey upholstery and polished gold accents. The contemporary design includes clean lines, stylish bedside tables with pendant lighting, a spacious glass-front wardrobe, and a geometric-patterned rug over a wooden floor, creating an inviting and comfortable ambiance.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Elegant luxury hotel room with king bed, modern furniture, sophisticated design",
+    "image_info": {
+      "url": "http://www.girlabouthouse.com/wp-content/uploads/2018/05/2-1-1024x683.jpg",
+      "file_path": "/workspace/imgs/luxury_hotel_room_elegant_bed_modern_interior.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 102187,
+      "width": 1024,
+      "height": 683,
+      "total_pixels": 699392,
+      "basic_score": 0.9034364477496496
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 98.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 96.0,
+      "explanation": "The image perfectly matches the search query and prompt, showcasing a luxurious and elegantly designed hotel room bed. The clarity is excellent, with sharp details and good lighting. There are no watermarks. The composition and styling are professional, contributing to a high overall quality score.",
+      "file_name": "luxury_hotel_room_elegant_bed_modern_interior.jpg",
+      "caption": "A beautifully appointed, elegant luxury hotel room featuring a large bed with a tall, vertically paneled upholstered headboard in a neutral taupe color. The bed is adorned with crisp white linens, a textured beige bed runner, and several decorative pillows in cream and light grey patterns. On the dark wood bedside tables, elegant lamps with neutral shades provide soft lighting. A sparkling crystal chandelier hangs from the ceiling, adding to the opulent feel. A white tray rests on the bed, holding a small vase of white flowers, macarons, and a book, suggesting a sophisticated and welcoming ambiance. A bright window is visible on the right, providing natural light to the meticulously designed space.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Elegant luxury hotel room with king bed, modern furniture, sophisticated design",
+    "image_info": {
+      "url": "https://www.21oak.com/wp-content/uploads/sites/7/2021/12/luxury-bedroom-grey-gold.jpg?fit=1200%2C799&p=1",
+      "file_path": "/workspace/imgs/luxury_hotel_king_bed_elegant_modern_bedroom.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 488897,
+      "width": 1200,
+      "height": 799,
+      "total_pixels": 958800,
+      "basic_score": 0.9628636464361808
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 98.0,
+      "clarity_score": 98.0,
+      "watermark_score": 100.0,
+      "overall_score": 97.0,
+      "explanation": "The image perfectly aligns with the search query and prompt, depicting a highly luxurious, elegant, and modern hotel room with a prominent king-size bed. The clarity is exceptional, showcasing intricate details and sophisticated design elements without any watermarks. The composition is professional, and the aesthetic appeal is very high.",
+      "file_name": "luxury_hotel_king_bed_elegant_modern_bedroom.jpg",
+      "caption": "A stunning, elegant luxury hotel bedroom featuring a prominent king-size bed with a plush, vertically tufted upholstered headboard. The room boasts modern furniture, including sleek white and gold bedside tables with stylish black lamps, and an upholstered bench with a patterned throw at the foot of the bed. Gold accents throughout the decor, an abstract painting above the bed, and a mirrored wardrobe contribute to the sophisticated design. A large window with sheer and blackout curtains offers natural light, completing the opulent interior.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Elegant luxury hotel room with king bed, modern furniture, sophisticated design",
+    "image_info": {
+      "url": "https://imageio.forbes.com/specials-images/imageserve/652f603a91415a3d647fc207/0x0.jpg?format=jpg&height=900&width=1600&fit=bounds",
+      "file_path": "/workspace/imgs/elegant_luxury_hotel_bedroom_king_bed_modern_interior.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 132066,
+      "width": 1201,
+      "height": 900,
+      "total_pixels": 1080900,
+      "basic_score": 0.9362534661877802
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 98.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 97.0,
+      "explanation": "The image perfectly matches the search query and prompt, depicting an elegant and luxurious hotel-style bedroom with a king-sized bed, modern furniture, and a sophisticated design. The clarity is excellent, with sharp details and appealing lighting. There are no watermarks, contributing to a high overall quality score.",
+      "file_name": "elegant_luxury_hotel_bedroom_king_bed_modern_interior.jpg",
+      "caption": "A sophisticated and elegant luxury hotel bedroom featuring a large king-size bed with neutral-toned bedding and checked pillows, flanked by modern nightstands with sleek lamps. The room boasts a clean, contemporary design with a neutral color palette, a striking multi-bulb chandelier, and a stylish wardrobe with dark glass doors. A textured rug covers the floor, and a leather travel bag rests at the foot of the bed, enhancing the luxurious travel ambiance.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Elegant luxury hotel room with king bed, modern furniture, sophisticated design",
+    "image_info": {
+      "url": "http://www.girlabouthouse.com/wp-content/uploads/2018/05/Sophie-Paterson-Interiors.jpg",
+      "file_path": "/workspace/imgs/luxury-hotel-room-king-bed-elegant-modern-interior-design.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 79286,
+      "width": 896,
+      "height": 508,
+      "total_pixels": 455168,
+      "basic_score": 0.841269955002423
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 100.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 98.0,
+      "explanation": "The image perfectly matches the search query and prompt, depicting a luxurious and elegant hotel room with a king-size bed and modern, sophisticated design. The clarity is excellent, and there are no watermarks. The composition, lighting, and styling are highly professional.",
+      "file_name": "luxury-hotel-room-king-bed-elegant-modern-interior-design.jpg",
+      "caption": "A beautifully appointed luxury hotel room showcasing a king-size bed with a sophisticated gold four-poster frame. The bed is adorned with neutral-toned linens, two textured gold patterned pillows, and a light pink throw. Flanking the bed are elegant modern wooden nightstands, each featuring a stylish rectangular lamp and understated decor. An upholstered bench with a wooden tray and books sits at the foot of the bed, completing the refined and contemporary interior design.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Elegant luxury hotel room with king bed, modern furniture, sophisticated design",
+    "image_info": {
+      "url": "https://media.istockphoto.com/id/1938106570/photo/digitally-generated-domestic-bedroom-interior.jpg?s=612x612&w=0&k=20&c=bC_YWy11iWh0ZtHJIT5ia4v9QELdl94SVqDge9XNZcc=",
+      "file_path": "/workspace/imgs/luxury_hotel_bedroom_elegant_modern_design_king_bed.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 55619,
+      "width": 612,
+      "height": 612,
+      "total_pixels": 374544,
+      "basic_score": 0.8148369968851575
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 98.0,
+      "clarity_score": 100.0,
+      "watermark_score": 100.0,
+      "overall_score": 98.0,
+      "explanation": "The image perfectly matches the search query and prompt, showcasing a luxurious and elegantly designed bedroom with modern furnishings. It boasts excellent clarity, professional composition, and a harmonious color palette, with no watermarks.",
+      "file_name": "luxury_hotel_bedroom_elegant_modern_design_king_bed.jpg",
+      "caption": "A lavish and contemporary bedroom interior, designed with elegant sophistication. The room features a prominent king-sized bed with a plush terracotta-colored upholstered headboard, dressed in crisp white linens and a sage green throw. A round, beige ottoman sits at the foot of the bed, complemented by a small, modern glass and metal nightstand. The floor is covered with light chevron-patterned hardwood, partially adorned by a distressed blue and beige area rug. Soft, diffused natural light streams in from a large window draped with sheer and opaque curtains, illuminating a cozy off-white armchair with an orange cushion and a minimalist floor lamp in the background. The walls are adorned with classic paneling, enhancing the room's luxurious appeal.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Modern luxury hotel gym and fitness center with premium equipment",
+    "image_info": {
+      "url": "https://fitnessdesigngroup.b-cdn.net/wordpress/wp-content/uploads/2021/10/Fairmont-Hotel-Gym-Design-Gym-Rax-Ecore-Gym-Flooring-Functional-Fitness-equipment-1080-x-630-1024x597.png",
+      "file_path": "/workspace/imgs/luxury_hotel_gym_fitness_center_modern_premium_equipment_tropical_view.jpg",
+      "img_format": "PNG",
+      "mode": "P",
+      "file_size": 352320,
+      "width": 1024,
+      "height": 597,
+      "total_pixels": 611328,
+      "basic_score": 0.897192475760663
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 98.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 95.0,
+      "explanation": "The image perfectly matches the search query and prompt, showcasing a modern, luxurious hotel gym with premium equipment and an attractive view. The clarity is excellent, and there are no watermarks. The composition is well-balanced and professionally executed.",
+      "file_name": "luxury_hotel_gym_fitness_center_modern_premium_equipment_tropical_view.jpg",
+      "caption": "A bright and spacious luxury hotel gym and fitness center, featuring modern premium equipment including a Concept2 rowing machine, dumbbell racks, kettlebells, and functional training stations. The gym's large arched windows offer a stunning tropical view of palm trees and resort buildings, creating an upscale and inspiring workout environment.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Modern luxury hotel gym and fitness center with premium equipment",
+    "image_info": {
+      "url": "https://images.squarespace-cdn.com/content/v1/5696733025981d28a35ef8ab/954e09df-1889-4c41-906d-e857673711d9/new+123+1.jpg",
+      "file_path": "/workspace/imgs/modern_luxury_hotel_gym_fitness_center_premium_equipment.jpg",
+      "img_format": "WEBP",
+      "mode": "RGB",
+      "file_size": 137106,
+      "width": 1000,
+      "height": 663,
+      "total_pixels": 663000,
+      "basic_score": 0.9100280650670596
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 98.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 96.0,
+      "explanation": "The image perfectly matches the search query and prompt, showcasing a modern, luxurious hotel gym with a variety of premium equipment. The clarity is excellent, with sharp details and good lighting. There are no watermarks. The composition is professional, highlighting the high-end aesthetic and spaciousness of the fitness center, making it highly suitable for the intended use.",
+      "file_name": "modern_luxury_hotel_gym_fitness_center_premium_equipment.jpg",
+      "caption": "A stunning, modern luxury hotel gym and fitness center, featuring a bright, spacious interior with light wood paneled floors and ceiling. The facility is equipped with a range of premium fitness equipment, including water rowing machines, free weights, kettlebells, a punching bag, an air bike, and battle ropes, all set against a backdrop of large mirrors and windows offering natural light. The aesthetic is sophisticated and inviting, typical of a high-end wellness space.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Modern luxury hotel gym and fitness center with premium equipment",
+    "image_info": {
+      "url": "https://d1qzuhxpc9cpmj.cloudfront.net/images/Gym20924a_copy.jpg",
+      "file_path": "/workspace/imgs/modern_luxury_hotel_gym_fitness_center_premium_equipment_technogym.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 1433362,
+      "width": 1920,
+      "height": 1215,
+      "total_pixels": 2332800,
+      "basic_score": 0.6471661638087719
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 98.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 97.0,
+      "explanation": "The image perfectly matches the search query and prompt, depicting a modern and luxurious hotel gym with a clean aesthetic and premium Technogym equipment. It boasts excellent clarity, professional lighting, and no intrusive watermarks, making it an ideal visual for the stated purpose.",
+      "file_name": "modern_luxury_hotel_gym_fitness_center_premium_equipment_technogym.jpg",
+      "caption": "A bright and spacious modern luxury hotel gym and fitness center, featuring a variety of premium Technogym exercise equipment, including treadmills, elliptical trainers, and stationary bikes. The gym boasts large floor-to-ceiling windows offering a scenic view of the outdoors, complemented by elegant wooden parquet flooring and contemporary circular ceiling light fixtures. The clean, minimalist design enhances the sophisticated ambiance.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Modern luxury hotel gym and fitness center with premium equipment",
+    "image_info": {
+      "url": "https://runway-media-production.global.ssl.fastly.net/us/originals/2018/12/four-seasons-hotel-seoul_photo-via-booking-dot-com.jpg",
+      "file_path": "/workspace/imgs/luxury_modern_hotel_gym_fitness_center_premium_equipment_city_view.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 168613,
+      "width": 1280,
+      "height": 814,
+      "total_pixels": 1041920,
+      "basic_score": 0.939560662667819
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 98.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 97.0,
+      "explanation": "This image perfectly aligns with the search query and prompt, showcasing a modern, luxurious hotel gym with premium fitness equipment. The clarity is excellent, and there are no watermarks. The composition and lighting are professional, creating an inviting and high-end feel.",
+      "file_name": "luxury_modern_hotel_gym_fitness_center_premium_equipment_city_view.jpg",
+      "caption": "An expansive and modern luxury hotel fitness center featuring state-of-the-art premium equipment, including various strength training machines from Life Fitness and a row of treadmills. The gym boasts large floor-to-ceiling windows offering a panoramic city view, abundant natural light, and sleek contemporary overhead strip lighting. Light wood parquet flooring and a sophisticated design contribute to a high-end and inviting workout environment.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Modern luxury hotel gym and fitness center with premium equipment",
+    "image_info": {
+      "url": "https://media.istockphoto.com/id/1211886784/photo/modern-gym-interior-with-sport-and-fitness-equipment-fitness-center-interior-interior-workout.jpg?s=612x612&w=0&k=20&c=MCmLSxq-tDeh6XEDWPRewkLJr-FZR734sdNQ3wbExTc=",
+      "file_path": "/workspace/imgs/modern_luxury_hotel_gym_fitness_center_premium_equipment.jpg_8f",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 63336,
+      "width": 612,
+      "height": 459,
+      "total_pixels": 280908,
+      "basic_score": 0.7834569179303563
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 98.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 95.0,
+      "explanation": "The image is an exceptional match for the search query and prompt, showcasing a modern, luxurious gym with premium equipment in a hotel-like setting. The design elements, natural light, and variety of new equipment strongly support all keywords. The image is clear, well-composed, and free of watermarks, indicating high professional quality.",
+      "file_name": "modern_luxury_hotel_gym_fitness_center_premium_equipment.jpg",
+      "caption": "A wide-angle, bright, and spacious modern luxury hotel gym and fitness center, featuring a light wooden floor, warm wood-paneled accent walls, and a high ceiling adorned with contemporary hexagonal LED lighting fixtures. Large, angled floor-to-ceiling windows provide abundant natural light and a view of lush greenery outside. The gym is well-equipped with a row of treadmills, exercise bikes, a rowing machine, various weight racks holding dumbbells and barbells, stability balls, medicine balls, and exercise mats, all appearing new and premium quality. A large potted plant adds a touch of nature to the sophisticated interior.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Luxury hotel spa and wellness center interior with elegant design",
+    "image_info": {
+      "url": "https://christies-christies-prod.web.arc-cdn.net/resizer/v2/SQNWA2SHYBBBHPDUZBXUUU6ZQQ.jpg?auth=fc51c6e553eb064954e2ed7fd3c67b215d365462e964f78eec01730858e715dd&width=800&height=600",
+      "file_path": "/workspace/imgs/luxury_hotel_spa_wellness_indoor_pool_elegant_design.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 77625,
+      "width": 800,
+      "height": 600,
+      "total_pixels": 480000,
+      "basic_score": 0.8492159598889296
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 98.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 97.0,
+      "explanation": "The image perfectly aligns with the search query and prompt, depicting a luxurious hotel spa interior with an elegant design, including a sophisticated swimming pool and lounge areas. The clarity is excellent, and there are no watermarks. The overall composition and professional quality are outstanding.",
+      "file_name": "luxury_hotel_spa_wellness_indoor_pool_elegant_design.jpg",
+      "caption": "A stunning and elegant interior of a luxury hotel spa and wellness center, featuring a long, reflective indoor swimming pool. The space is adorned with rich wooden paneling, tall windows with subtle lighting, chic lounging areas with modern furniture, and unique pendant lights. Warm ambient lighting and gas fireplaces contribute to a serene and opulent atmosphere.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Luxury hotel spa and wellness center interior with elegant design",
+    "image_info": {
+      "url": "https://www.luxewellnessclub.com/wp-content/uploads/2024/12/Royal-Mansour-Tamuda-Bay-Luxe-Wellness-Club-52.jpg",
+      "file_path": "/workspace/imgs/luxury_hotel_spa_wellness_indoor_pool_elegant_design.jpg_5e",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 196765,
+      "width": 1024,
+      "height": 682,
+      "total_pixels": 698368,
+      "basic_score": 0.9127266187482813
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 100.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 98.0,
+      "explanation": "The image perfectly matches the search query and prompt, depicting an exquisite luxury hotel spa and wellness center interior with elegant design. It is highly clear, well-composed, and free of any watermarks.",
+      "file_name": "luxury_hotel_spa_wellness_indoor_pool_elegant_design.jpg",
+      "caption": "An exquisitely designed luxury indoor swimming pool and wellness area, featuring a serene pool with turquoise water, a unique central water feature resembling a large basin with flowing water, elegant patterned walls with a vine motif, and arched doorways leading to other sections. Hanging spherical lights illuminate the high ceiling, which boasts intricate wooden lattice work, adding to the opulent and tranquil ambiance of this high-end hotel spa.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Luxury hotel spa and wellness center interior with elegant design",
+    "image_info": {
+      "url": "https://www.fontainebleaulasvegas.com/uploads/2025/02/lapis.png",
+      "file_path": "/workspace/imgs/luxury_hotel_spa_wellness_center_interior_pool_lounge.jpg",
+      "img_format": "PNG",
+      "mode": "P",
+      "file_size": 192984,
+      "width": 920,
+      "height": 558,
+      "total_pixels": 513360,
+      "basic_score": 0.8560952212399797
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 100.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 98.0,
+      "explanation": "The image perfectly matches the search query and prompt, showcasing a luxurious and elegant hotel spa interior with excellent clarity and professional composition. There are no watermarks.",
+      "file_name": "luxury_hotel_spa_wellness_center_interior_pool_lounge.jpg",
+      "caption": "A stunning wide-angle view of a luxurious hotel spa and wellness center interior. The elegant space features a long, rectangular hydrotherapy pool with gentle water features, surrounded by light-toned tiles. To the right, a series of comfortable white lounge chairs invite relaxation. The left side showcases shelves neatly stocked with white and blue towels against a textured, dark blue tiled wall. Overhead, illuminated ceiling panels cast a serene blue glow, enhancing the sophisticated and tranquil atmosphere of the wellness area.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Luxury hotel spa and wellness center interior with elegant design",
+    "image_info": {
+      "url": "https://media.istockphoto.com/id/1331465591/photo/3d-render-of-a-luxury-hotel-swimming-pool.jpg?s=612x612&w=0&k=20&c=oK3vEzPg3mZrCXgairNgU5qM-vf0jMab9N7udzzVDk0=",
+      "file_path": "/workspace/imgs/luxury_hotel_spa_wellness_indoor_pool_elegant_design.jpg_bb",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 49419,
+      "width": 612,
+      "height": 383,
+      "total_pixels": 234396,
+      "basic_score": 0.7611680378296032
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 98.0,
+      "clarity_score": 95.0,
+      "watermark_score": 25.0,
+      "overall_score": 75.0,
+      "explanation": "The image is highly relevant to the search query and prompt, perfectly showcasing a luxury hotel spa and wellness interior with elegant design. Clarity and composition are excellent, with sharp details and appealing aesthetics. However, a prominent 'gettyimages' watermark is visible in the bottom right corner, significantly reducing the watermark score and overall usability without removal.",
+      "file_name": "luxury_hotel_spa_wellness_indoor_pool_elegant_design.jpg",
+      "caption": "A lavish and elegant indoor wellness center or hotel spa, featuring a serene swimming pool, a separate hot tub, and comfortable woven lounge chairs. The space is adorned with a stunning gold textured ceiling, warm ambient lighting, and rich wall panels in gold and light stone tones. A large, beautiful olive tree serves as a natural centerpiece, adding to the tranquil atmosphere. Floor-to-ceiling windows on the right offer abundant natural light, enhancing the luxurious and modern design of this exquisite interior.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Elegant luxury hotel lobby with modern sophisticated design, marble floors, high ceilings, for hero section",
+    "image_info": {
+      "url": "https://www.frontsigns.com/wp-content/uploads/2022/02/luxury-hotel-lobby-designs.jpg",
+      "file_path": "/workspace/imgs/luxury_hotel_lobby_modern_elegant_marble_design.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 114533,
+      "width": 1252,
+      "height": 617,
+      "total_pixels": 772484,
+      "basic_score": 0.8989982016882807
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 98.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 96.0,
+      "explanation": "The image perfectly matches the search query and prompt, depicting a luxurious hotel lobby with a modern and elegant design. It features high ceilings, polished marble floors with reflections, sophisticated lighting, and stylish furnishings. The composition is excellent, and the image is very clear, making it ideal for a hero section.",
+      "file_name": "luxury_hotel_lobby_modern_elegant_marble_design.jpg",
+      "caption": "A grand and elegant luxury hotel lobby featuring a modern sophisticated design. The space boasts high ceilings with warm wooden paneling, polished marble floors reflecting the ambient light, and contemporary hanging light fixtures. A prominent central marble column anchors the room, while a stylish seating area with plush sofas and a striking wall art installation of flying birds adds a touch of artistic flair. Built-in shelving with decorative elements and a reception desk complete the sophisticated interior.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Elegant luxury hotel lobby with modern sophisticated design, marble floors, high ceilings, for hero section",
+    "image_info": {
+      "url": "http://brabbucontract.com/inspirations-and-ideas/wp-content/uploads/2019/11/NICCOLO-HOTEL-CHANGSHA-Wilson-Associates.jpg",
+      "file_path": "/workspace/imgs/luxury_hotel_lobby_modern_elegant_high_ceiling_niccolo.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 140350,
+      "width": 825,
+      "height": 464,
+      "total_pixels": 382800,
+      "basic_score": 0.8266593072174714
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 98.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 96.0,
+      "explanation": "The image perfectly matches the search query and prompt, depicting a highly luxurious, modern, and elegant hotel lobby with high ceilings and a distinctive patterned floor. The clarity is excellent, and there are no watermarks. The composition is professional and ideal for a hero section.",
+      "file_name": "luxury_hotel_lobby_modern_elegant_high_ceiling_niccolo.jpg",
+      "caption": "A grand, modern, and elegant lobby at a luxury Niccolo hotel, featuring towering dark walls, exceptionally high ceilings, and a spectacular, intricate chandelier made of metallic elements. The space includes sleek reception desks with floral arrangements, a chic seating area with cream-colored armchairs and a round rug, and a striking floor with a geometric pattern in dark and gold tones. Illuminated wall panels add a warm glow to the sophisticated interior design.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Elegant luxury hotel lobby with modern sophisticated design, marble floors, high ceilings, for hero section",
+    "image_info": {
+      "url": "https://www.hotellobbies.net/wp-content/uploads/2019/11/Luxury-Hotel-Lobby-2.jpg",
+      "file_path": "/workspace/imgs/luxury_hotel_lobby_modern_elegant_design_marble_high_ceiling.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 130047,
+      "width": 825,
+      "height": 619,
+      "total_pixels": 510675,
+      "basic_score": 0.8636372810122125
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 100.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 98.0,
+      "explanation": "The image perfectly matches the search query and prompt, showcasing a highly elegant and modern luxury hotel lobby. It features high ceilings, marble floors, and a sophisticated design with excellent clarity and no watermarks. The composition is professional and visually striking, suitable for a hero section.",
+      "file_name": "luxury_hotel_lobby_modern_elegant_design_marble_high_ceiling.jpg",
+      "caption": "A stunning view of a modern luxury hotel lobby, featuring a soaring ceiling adorned with an intricate, glowing chandelier installation made of vertical light tubes. The opulent space is furnished with sleek, dark sofas accented with vibrant teal cushions and contemporary armchairs, positioned on a plush grey rug. Polished marble floors reflect the sophisticated lighting, while dark textured walls with vertical light fixtures provide a dramatic and elegant backdrop. This exquisite interior design perfectly embodies modern luxury and sophistication.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Elegant luxury hotel lobby with modern sophisticated design, marble floors, high ceilings, for hero section",
+    "image_info": {
+      "url": "https://www.frontsigns.com/wp-content/uploads/2022/02/modern-hotel-lobby-design.jpg",
+      "file_path": "/workspace/imgs/luxury_hotel_lobby_modern_elegant_design_marble_high_ceiling.jpg_1e",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 206886,
+      "width": 1920,
+      "height": 671,
+      "total_pixels": 1288320,
+      "basic_score": 0.8550783855788034
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 98.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 97.0,
+      "explanation": "The image is an excellent match for the search query and prompt, perfectly showcasing a luxury hotel lobby with a modern and sophisticated design. It features high ceilings, what appears to be marble flooring, and an overall elegant aesthetic with a harmonious blend of natural wood and stone elements. The clarity is superb, and there are no watermarks, making it ideal for a hero section.",
+      "file_name": "luxury_hotel_lobby_modern_elegant_design_marble_high_ceiling.jpg",
+      "caption": "An expansive and elegantly designed luxury hotel lobby, featuring a sophisticated reception desk with a marble front and a bonsai tree. The interior boasts high ceilings, polished marble-like floors, and walls clad in textured stone and natural wood. To the left, a serene lounge area with low seating cushions and a circular artistic wall panel creates a Zen-inspired atmosphere. On the right, a comfortable seating area with modern armchairs and a warm, inviting ambiance is visible, alongside a staircase with green vertical accents, all contributing to a modern and luxurious guest experience.",
+      "recommend": true,
+      "error": ""
+    }
+  },
+  {
+    "query": "Elegant luxury hotel lobby with modern sophisticated design, marble floors, high ceilings, for hero section",
+    "image_info": {
+      "url": "https://www.frontsigns.com/wp-content/uploads/2022/02/contemporary-hotel-reception-design.jpg",
+      "file_path": "/workspace/imgs/elegant_modern_luxury_hotel_lobby_reception_area_design.jpg",
+      "img_format": "JPEG",
+      "mode": "RGB",
+      "file_size": 102006,
+      "width": 1252,
+      "height": 617,
+      "total_pixels": 772484,
+      "basic_score": 0.8977175710081606
+    },
+    "llm_score": {
+      "success": true,
+      "relevance_score": 100.0,
+      "clarity_score": 95.0,
+      "watermark_score": 100.0,
+      "overall_score": 98.0,
+      "explanation": "The image is an excellent match for the search query and prompt, showcasing a luxurious and modern hotel lobby with elegant design, high ceilings, and polished floors that appear to be marble. The composition is strong, the lighting is sophisticated, and the image clarity is outstanding. There are no watermarks, making it ideal for a hero section.",
+      "file_name": "elegant_modern_luxury_hotel_lobby_reception_area_design.jpg",
+      "caption": "A grand and opulent hotel lobby interior showcasing a modern and sophisticated design. The space features dramatic high ceilings with fluid, curvilinear architectural details and integrated cove lighting, casting a warm glow. Polished, reflective floors, resembling marble, extend throughout the area. A sleek, white reception desk with a contemporary bonsai-inspired sculpture prominently displays the 'Crown Hotel' branding. The walls are adorned with warm wooden paneling and textured accents, contributing to the luxurious and inviting ambiance.",
+      "recommend": true,
+      "error": ""
+    }
+  }
+]
