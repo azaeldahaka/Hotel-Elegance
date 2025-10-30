@@ -14,8 +14,11 @@ export const UsuarioDashboard = () => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    cargarDatos()
-  }, [])
+    // Solo carga los datos SI el usuario ya está cargado
+    if (user) {
+      cargarDatos()
+    }
+  }, [user]) // <-- El array ahora "depende" del usuario
 
   const cargarDatos = async () => {
     try {

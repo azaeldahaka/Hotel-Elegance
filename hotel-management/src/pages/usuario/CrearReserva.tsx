@@ -7,7 +7,7 @@ import { Calendar, Users, CreditCard, AlertCircle, CheckCircle } from 'lucide-re
 
 export const CrearReserva = () => {
   const { id } = useParams()
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   
   const [habitacion, setHabitacion] = useState<Habitacion | null>(null)
@@ -27,10 +27,11 @@ export const CrearReserva = () => {
   const [total, setTotal] = useState(0)
 
   useEffect(() => {
-    if (id) {
+    // Solo carga la habitación si tenemos el ID Y la autenticación está lista
+    if (id && !authLoading) { 
       cargarHabitacion()
     }
-  }, [id])
+  }, [id, authLoading]) // Añade authLoading a las dependencias
 
   useEffect(() => {
     calcularTotal()
@@ -177,7 +178,8 @@ export const CrearReserva = () => {
     }
   }
 
-  if (!habitacion) {
+  // Muestra el spinner si la autenticación ESTÁ CARGANDO o si la habitación NO SE HA ENCONTRADO
+  if (authLoading || !habitacion) { 
     return <div className="min-h-screen flex items-center justify-center">
       <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-amber-600"></div>
     </div>
