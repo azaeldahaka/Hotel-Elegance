@@ -1,3 +1,5 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
 Deno.serve(async (req) => {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -13,74 +15,62 @@ Deno.serve(async (req) => {
   try {
     const { email, password, nombre } = await req.json();
 
+    // --- 1. Validaciones primero ---
     if (!email || !password || !nombre) {
       throw new Error('Email, contraseña y nombre son requeridos');
     }
-
-    // Validar formato de email
+    
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       throw new Error('Formato de email inválido');
     }
-
-    // Validar longitud de contraseña
     if (password.length < 6) {
       throw new Error('La contraseña debe tener al menos 6 caracteres');
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    // --- 2. Conectar a Supabase (con permisos de admin) ---
+    // (Usamos el cliente de Supabase, es más limpio que fetch)
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
 
-    // Verificar si el email ya existe
-    const checkResponse = await fetch(`${supabaseUrl}/rest/v1/usuarios?email=eq.${email}`, {
-      headers: {
-        'apikey': serviceRoleKey!,
-        'Authorization': `Bearer ${serviceRoleKey}`,
-      },
-    });
+    // --- 3. Verificar si el email ya existe ---
+    const { data: existingUser } = await supabaseAdmin
+      .from('usuarios')
+      .select('id')
+      .eq('email', email)
+      .maybeSingle();
 
-    const existingUsers = await checkResponse.json();
-
-    if (existingUsers && existingUsers.length > 0) {
+    if (existingUser) {
       throw new Error('Este email ya está registrado');
     }
 
-    // Hash de la contraseña usando Web Crypto API
+    // --- 4. Hashear la contraseña (LA PARTE CLAVE) ---
     const encoder = new TextEncoder();
     const data = encoder.encode(password);
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashedPassword = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-    // Crear nuevo usuario
-    const insertResponse = await fetch(`${supabaseUrl}/rest/v1/usuarios`, {
-      method: 'POST',
-      headers: {
-        'apikey': serviceRoleKey!,
-        'Authorization': `Bearer ${serviceRoleKey}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation',
-      },
-      body: JSON.stringify({
+    // --- 5. Crear el nuevo usuario (con el HASH) ---
+    const { data: newUser, error: insertError } = await supabaseAdmin
+      .from('usuarios')
+      .insert({
         email,
-        password: hashedPassword,
+        password: hashedPassword, // ¡Guardamos el hash, no la contraseña simple!
         nombre,
         rol: 'usuario',
-      }),
-    });
+      })
+      .select()
+      .single();
 
-    if (!insertResponse.ok) {
-      const errorText = await insertResponse.text();
-      throw new Error(`Error al crear usuario: ${errorText}`);
+    if (insertError) {
+      throw new Error(`Error al crear usuario: ${insertError.message}`);
     }
 
-    const newUsers = await insertResponse.json();
-    const newUser = newUsers[0];
-
-    // Generar token
+    // --- 6. Generar token y responder ---
     const token = btoa(`${newUser.id}:${Date.now()}`);
-
-    // Devolver usuario sin contraseña
     const { password: _, ...userWithoutPassword } = newUser;
 
     return new Response(JSON.stringify({
@@ -91,6 +81,7 @@ Deno.serve(async (req) => {
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
+
   } catch (error) {
     return new Response(JSON.stringify({
       error: {
