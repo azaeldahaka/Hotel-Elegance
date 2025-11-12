@@ -687,12 +687,12 @@ const GestionOperadores = ({
     password: ''
   })
 
-  const [errores, setErrores] = useState<{ nombre?: string }>({});
+  // --- ARREGLO: Limpiamos el error 'general' al cambiar el nombre ---
+  const [errores, setErrores] = useState<{ nombre?: string, general?: string }>({});
 
   const handleNombreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const valor = e.target.value;
-    const soloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$/; // Solo letras y espacios
-
+    const soloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$/;
     if (soloLetras.test(valor)) {
       setFormData({ ...formData, nombre: valor });
       setErrores({ ...errores, nombre: "" });
@@ -701,37 +701,49 @@ const GestionOperadores = ({
     }
   };
 
+  // -----------------------------------------------------------
+  // HANDLESUBMIT 100% CORREGIDO
+  // (Llama a la Edge Function 'create-user')
+  // -----------------------------------------------------------
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    // ADVERTENCIA DE BUG: Esto fallará en el login del operador.
+    e.preventDefault();
+    setErrores({}); // Limpiar errores viejos
+
     try {
-      await supabase
-        .from('usuarios')
-        .insert([{
-          ...formData,
-          rol: 'operador'
-        }])
+      // 1. Llamamos a la nueva Edge Function
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: { 
+          email: formData.email,
+          password: formData.password,
+          nombre: formData.nombre,
+          rol: 'operador' // Forzamos el rol a 'operador'
+        },
+      });
       
+      if (error) {
+        // Si la Edge Function devuelve un error (ej: "Email ya existe")
+        // lo tomamos y lo mostramos
+        const errorData = await error.context.json();
+        throw new Error(errorData.error.message);
+      }
+      
+      // 2. Si todo salió bien, limpiamos y recargamos
       setFormData({ email: '', nombre: '', password: '' })
       setShowModal(false)
       onRecargar()
-    } catch (error) {
-      console.error('Error creando operador:', error)
+      
+    } catch (err: any) {
+      // 3. Mostramos el error en el formulario
+      console.error('Error creando operador:', err)
+      setErrores({ ...errores, general: err.message || "Error desconocido" });
     }
   }
 
   const handleDelete = async (id: string) => {
     if (!confirm('¿Estás seguro de eliminar este operador?')) return
-    
     try {
-      await supabase
-        .from('usuarios')
-        .delete()
-        .eq('id', id)
-      
+      await supabase.from('usuarios').delete().eq('id', id)
       onRecargar()
-
     } catch (error) {
       console.error('Error eliminando operador:', error)
     }
@@ -741,7 +753,10 @@ const GestionOperadores = ({
     <div>
       <div className="mb-6">
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => {
+            setErrores({}); // Limpiar errores al abrir el modal
+            setShowModal(true);
+          }}
           className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center gap-2 shadow-lg"
         >
           <Plus className="h-5 w-5" />
@@ -775,68 +790,28 @@ const GestionOperadores = ({
           <div className="bg-white rounded-xl p-6 max-w-md w-full">
             <h2 className="text-2xl font-bold mb-6">Nuevo Operador</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Mostramos el error general */}
+              {errores.general && (
+                <p className="text-red-600 text-sm p-3 bg-red-50 rounded-lg">{errores.general}</p>
+              )}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Nombre
-                </label>
-                <input
-                  type="text"
-                  value={formData.nombre}
-                  onChange={handleNombreChange}
-                  onPaste={(e) => {
-                    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$/.test(e.clipboardData.getData('text'))) {
-                      e.preventDefault();
-                      setErrores({ ...errores, nombre: "Solo se permiten letras y espacios." });
-                    }
-                  }}
-                  className={`w-full px-4 py-2 border ${
-                    errores.nombre ? "border-red-400" : "border-slate-300"
-                  } rounded-lg focus:ring-2 focus:ring-amber-500 outline-none`}
-                  placeholder="Ingrese nombre"
-                  required
-                />
-                {errores.nombre && (
-                  <p className="text-red-600 text-sm mt-1">{errores.nombre}</p>
-                )}
-
+                <label className="block text-sm font-medium text-slate-700 mb-2">Nombre</label>
+                <input type="text" value={formData.nombre} onChange={handleNombreChange} className={`w-full px-4 py-2 border ${errores.nombre ? "border-red-400" : "border-slate-300"} rounded-lg focus:ring-2 focus:ring-amber-500 outline-none`} placeholder="Ingrese nombre" required />
+                {errores.nombre && (<p className="text-red-600 text-sm mt-1">{errores.nombre}</p>)}
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-                  required
-                />
+                <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
+                <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Contraseña
-                </label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-                  required
-                  minLength={6}
-                />
+                <label className="block text-sm font-medium text-slate-700 mb-2">Contraseña</label>
+                <input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" required minLength={6} />
               </div>
               <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  className="flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium"
-                >
+                <button type="submit" className="flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium">
                   Crear
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium"
-                >
+                <button type="button" onClick={() => setShowModal(false)} className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium">
                   Cancelar
                 </button>
               </div>
@@ -847,7 +822,6 @@ const GestionOperadores = ({
     </div>
   )
 }
-
 // -----------------------------------------------------------
 // ESTADÍSTICAS (COMPONENTE 100% NUEVO CON GRÁFICOS)
 // -----------------------------------------------------------
