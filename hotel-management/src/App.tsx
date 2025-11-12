@@ -9,6 +9,7 @@ import { CrearReserva } from './pages/usuario/CrearReserva'
 import { Consultas } from './pages/usuario/Consultas'
 import { OperadorDashboard } from './pages/operador/OperadorDashboard'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
+import { MiPerfil } from './pages/MiPerfil'
 
 
 function App() {
@@ -50,6 +51,13 @@ function App() {
             <Route path="/admin/dashboard" element={
               <ProtectedRoute roles={['administrador']}>
                 <AdminDashboard />
+              </ProtectedRoute>
+            } />
+
+            {/* --- ¡NUEVA RUTA AÑADIDA! --- */}
+            <Route path="/mi-perfil" element={
+              <ProtectedRoute roles={['usuario', 'operador', 'administrador']}>
+                <MiPerfil />
               </ProtectedRoute>
             } />
             
