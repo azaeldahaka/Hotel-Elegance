@@ -10,6 +10,7 @@ import { Consultas } from './pages/usuario/Consultas'
 import { OperadorDashboard } from './pages/operador/OperadorDashboard'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
 
+
 function App() {
   return (
     <AuthProvider>

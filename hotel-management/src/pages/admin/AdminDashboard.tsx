@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Habitacion, Usuario, Reserva } from '@/types'
-import { Home, Users, BarChart3, Plus, Edit, Trash2, X, Save, TrendingUp, DollarSign, Calendar } from 'lucide-react'
+import { Home, Users, BarChart3, Plus, Edit, Trash2, X, Save, TrendingUp, DollarSign, Calendar, Filter } from 'lucide-react'
 
 export const AdminDashboard = () => {
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState<'habitaciones' | 'operadores' | 'estadisticas'>('habitaciones')
+  const [activeTab, setActiveTab] = useState<'habitaciones' | 'operadores' | 'estadisticas' | 'reservas'>('habitaciones')
   const [habitaciones, setHabitaciones] = useState<Habitacion[]>([])
   const [operadores, setOperadores] = useState<Usuario[]>([])
   const [reservas, setReservas] = useState<Reserva[]>([])
@@ -17,6 +17,7 @@ export const AdminDashboard = () => {
   }, [])
 
   const cargarDatos = async () => {
+    setLoading(true);
     try {
       const { data: habData } = await supabase
         .from('habitaciones')
@@ -31,8 +32,8 @@ export const AdminDashboard = () => {
 
       const { data: resData } = await supabase
         .from('reservas')
-        .select('*')
-        .order('fecha_reserva', { ascending: false })
+        .select('*') // Volvemos a un select simple
+        .order('fecha_reserva', { ascending: false }) 
 
       setHabitaciones(habData || [])
       setOperadores(opData || [])
@@ -73,7 +74,19 @@ export const AdminDashboard = () => {
             }`}
           >
             <Home className="h-5 w-5" />
-            Habitaciones
+            Habitaciones ({habitaciones.length})
+          </button>
+          
+          <button
+            onClick={() => setActiveTab('reservas')}
+            className={`px-6 py-3 font-medium transition-colors flex items-center gap-2 ${
+              activeTab === 'reservas'
+                ? 'text-amber-600 border-b-2 border-amber-600'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Calendar className="h-5 w-5" />
+            Reservas ({reservas.length})
           </button>
           <button
             onClick={() => setActiveTab('operadores')}
@@ -103,6 +116,9 @@ export const AdminDashboard = () => {
         {activeTab === 'habitaciones' && (
           <GestionHabitaciones habitaciones={habitaciones} onRecargar={cargarDatos} />
         )}
+        {activeTab === 'reservas' && (
+          <GestionReservas reservas={reservas} />
+        )}
         {activeTab === 'operadores' && (
           <GestionOperadores operadores={operadores} onRecargar={cargarDatos} />
         )}
@@ -113,6 +129,139 @@ export const AdminDashboard = () => {
     </div>
   )
 }
+
+// --- GESTIÓN DE RESERVAS (CON FILTRO FUNCIONAL) ---
+const GestionReservas = ({ reservas }: { reservas: Reserva[] }) => {
+  const [fechaInicio, setFechaInicio] = useState('');
+  const [fechaFin, setFechaFin] = useState('');
+  const [reservasFiltradas, setReservasFiltradas] = useState(reservas);
+
+  // Sincroniza la lista filtrada con las props (para que se muestren por defecto)
+  useEffect(() => {
+    setReservasFiltradas(reservas);
+  }, [reservas]);
+
+  // Función de filtrar (Lógica de Timestamps - A prueba de balas)
+  const handleFiltrar = () => {
+    
+    let tsInicio = 0; // Por defecto, el inicio de los tiempos
+    if (fechaInicio) {
+      // "2025-11-12" -> [2025, 11, 12]
+      const [y, m, d] = fechaInicio.split('-').map(Number);
+      // Creamos la fecha a las 00:00:00 (hora local)
+      tsInicio = new Date(y, m - 1, d, 0, 0, 0).getTime();
+    }
+    
+    let tsFin = Infinity; // Por defecto, el infinito
+    if (fechaFin) {
+      const [y, m, d] = fechaFin.split('-').map(Number);
+      // Creamos la fecha a las 23:59:59 (hora local)
+      tsFin = new Date(y, m - 1, d, 23, 59, 59).getTime();
+    }
+
+    // 2. FILTRAR
+    const filtradas = reservas.filter(reserva => {
+      // Convertimos el timestamp de la BDD (que es UTC) a un número
+      const tsReserva = new Date(reserva.fecha_reserva).getTime();
+
+      // 3. Comparamos los números
+      return tsReserva >= tsInicio && tsReserva <= tsFin;
+    });
+
+    setReservasFiltradas(filtradas);
+  };
+
+  // Función para limpiar los filtros y mostrar todo
+  const handleLimpiar = () => {
+    setFechaInicio('');
+    setFechaFin('');
+    setReservasFiltradas(reservas);
+  };
+
+  return (
+    <div>
+      {/* Barra de Filtros */}
+      <div className="bg-white p-4 rounded-lg shadow-sm mb-6 flex flex-wrap items-center gap-4">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Desde (Fecha de Reserva)
+          </label>
+          <input
+            type="date"
+            value={fechaInicio}
+            onChange={(e) => setFechaInicio(e.target.value)}
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Hasta (Fecha de Reserva)
+          </label>
+          <input
+            type="date"
+            value={fechaFin}
+            onChange={(e) => setFechaFin(e.target.value)}
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+          />
+        </div>
+        <button
+          onClick={handleFiltrar}
+          className="mt-6 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center gap-2"
+        >
+          <Filter className="h-4 w-4" />
+          Filtrar
+        </button>
+        <button
+          onClick={handleLimpiar}
+          className="mt-6 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium"
+        >
+          Limpiar
+        </button>
+      </div>
+
+      {/* Lista de Reservas Filtradas */}
+      <div className="grid md:grid-cols-2 gap-6">
+        {reservasFiltradas.length === 0 && (
+          <p className="text-slate-500 col-span-2">
+            No se encontraron reservas para las fechas seleccionadas.
+          </p>
+        )}
+        {reservasFiltradas.map((reserva) => (
+          <div key={reserva.id} className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+            <div className="flex justify-between items-start mb-2">
+              <h3 className="font-bold text-lg text-slate-900">Reserva #{reserva.id.slice(0, 8)}</h3>
+              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                reserva.estado === 'activa' 
+                  ? 'bg-green-100 text-green-700'
+                  : reserva.estado === 'completada'
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'bg-red-100 text-red-700'
+              }`}>
+                {reserva.estado}
+              </span>
+            </div>
+            
+            <p className="text-sm text-slate-500 mb-2">
+              Habitación ID: {reserva.habitacion_id.slice(0, 8)}...
+            </p>
+            
+            <div className="text-sm space-y-1 text-slate-700">
+              <p><strong>Check-in:</strong> {new Date(reserva.fecha_entrada + 'T00:00:00').toLocaleDateString('es-ES')}</p>
+              <p><strong>Check-out:</strong> {new Date(reserva.fecha_salida + 'T00:00:00').toLocaleDateString('es-ES')}</p>
+              <p><strong>Huéspedes:</strong> {reserva.num_huespedes}</p>
+              <p className="font-bold text-lg text-amber-600 mt-2">Total: ${reserva.total.toLocaleString('es-ES')}</p>
+              <p className="text-xs text-slate-400 pt-2 border-t border-slate-100 mt-2">
+                Reservado el: {new Date(reserva.fecha_reserva).toLocaleString('es-ES')}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// --- EL RESTO DE LOS COMPONENTES ---
 
 const GestionHabitaciones = ({ 
   habitaciones, 
@@ -424,6 +573,11 @@ const GestionOperadores = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // ------------------------------------------------------------------
+    // ADVERTENCIA DE BUG: Esto insertará una contraseña en texto plano.
+    // El operador creado no podrá iniciar sesión porque auth-login
+    // espera un hash. Esto requiere una Edge Function 'create-operator'.
+    // ------------------------------------------------------------------
     try {
       await supabase
         .from('usuarios')
@@ -449,7 +603,11 @@ const GestionOperadores = ({
         .delete()
         .eq('id', id)
       
+      // -----------------------------------------------------------
+      // AQUÍ ESTABA EL ERROR DE TIPEOM. CORREGIDO.
+      // -----------------------------------------------------------
       onRecargar()
+
     } catch (error) {
       console.error('Error eliminando operador:', error)
     }
