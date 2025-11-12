@@ -589,151 +589,6 @@ const GestionHabitaciones = ({
 }
 
 // -----------------------------------------------------------
-// GESTIÓN DE OPERADORES (CON LLAMADA A EDGE FUNCTION)
-// -----------------------------------------------------------
-const GestionOperadores = ({ 
-  operadores, 
-  onRecargar 
-}: { 
-  operadores: Usuario[]
-  onRecargar: () => void 
-}) => {
-  const [showModal, setShowModal] = useState(false)
-  const [formData, setFormData] = useState({
-    email: '',
-    nombre: '',
-    password: ''
-  })
-  const [errores, setErrores] = useState<{ nombre?: string, general?: string }>({});
-
-  const handleNombreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const valor = e.target.value;
-    const soloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$/;
-    if (soloLetras.test(valor)) {
-      setFormData({ ...formData, nombre: valor });
-      setErrores({ ...errores, nombre: "" });
-    } else {
-      setErrores({ ...errores, nombre: "Solo se permiten letras y espacios." });
-    }
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrores({}); // Limpiar errores viejos
-
-    try {
-      // 1. Llamamos a la nueva Edge Function
-      const { data, error } = await supabase.functions.invoke('create-user', {
-        body: { 
-          email: formData.email,
-          password: formData.password,
-          nombre: formData.nombre,
-          rol: 'operador' // Forzamos el rol a 'operador'
-        },
-      });
-      
-      if (error) {
-        // Si la Edge Function devuelve un error (ej: "Email ya existe")
-        const errorData = await error.context.json();
-        throw new Error(errorData.error.message);
-      }
-      
-      // 2. Si todo salió bien, limpiamos y recargamos
-      setFormData({ email: '', nombre: '', password: '' })
-      setShowModal(false)
-      onRecargar()
-      
-    } catch (err: any) {
-      // 3. Mostramos el error en el formulario
-      console.error('Error creando operador:', err)
-      setErrores({ ...errores, general: err.message || "Error desconocido" });
-    }
-  }
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar este operador?')) return
-    try {
-      await supabase.from('usuarios').delete().eq('id', id)
-      onRecargar()
-    } catch (error) {
-      console.error('Error eliminando operador:', error)
-    }
-  }
-
-  return (
-    <div>
-      <div className="mb-6">
-        <button
-          onClick={() => {
-            setErrores({}); // Limpiar errores al abrir el modal
-            setShowModal(true);
-          }}
-          className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center gap-2 shadow-lg"
-        >
-          <Plus className="h-5 w-5" />
-          Nuevo Operador
-        </button>
-      </div>
-
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {operadores.map((op) => (
-          <div key={op.id} className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
-            <div className="mb-4">
-              <h3 className="font-bold text-lg">{op.nombre}</h3>
-              <p className="text-sm text-slate-600">{op.email}</p>
-              <p className="text-xs text-slate-400 mt-1">
-                Creado: {new Date(op.fecha_creacion || '').toLocaleDateString('es-ES')}
-              </p>
-            </div>
-            <button
-              onClick={() => handleDelete(op.id)}
-              className="w-full px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium flex items-center justify-center gap-1"
-            >
-              <Trash2 className="h-4 w-4" />
-              Eliminar
-            </button>
-          </div>
-        ))}
-      </div>
-
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full">
-            <h2 className="text-2xl font-bold mb-6">Nuevo Operador</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {errores.general && (
-                <p className="text-red-600 text-sm p-3 bg-red-50 rounded-lg">{errores.general}</p>
-              )}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Nombre</label>
-                <input type="text" value={formData.nombre} onChange={handleNombreChange} className={`w-full px-4 py-2 border ${errores.nombre ? "border-red-400" : "border-slate-300"} rounded-lg focus:ring-2 focus:ring-amber-500 outline-none`} placeholder="Ingrese nombre" required />
-                {errores.nombre && (<p className="text-red-600 text-sm mt-1">{errores.nombre}</p>)}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
-                <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Contraseña</label>
-                <input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" required minLength={6} />
-              </div>
-              <div className="flex gap-3 pt-4">
-                <button type="submit" className="flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium">
-                  Crear
-                </button>
-                <button type="button" onClick={() => setShowModal(false)} className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium">
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// -----------------------------------------------------------
 // ESTADÍSTICAS (CON GRÁFICOS)
 // -----------------------------------------------------------
 const Estadisticas = ({ 
@@ -1110,6 +965,355 @@ const ModalEditarReserva = ({
           </div>
 
           {/* Fila 4: Botones */}
+          <div className="flex gap-3 pt-4">
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {loading ? <RefreshCw className="animate-spin h-5 w-5" /> : <Save className="h-5 w-5" />}
+              Guardar Cambios
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// --- Reemplaza el componente 'GestionOperadores' existente por este ---
+
+const GestionOperadores = ({ 
+  operadores, 
+  onRecargar 
+}: { 
+  operadores: Usuario[]
+  onRecargar: () => void 
+}) => {
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  // --- NUEVO: Estado para el modal de EDICIÓN ---
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [operadorAEditar, setOperadorAEditar] = useState<Usuario | null>(null)
+  
+  const [formData, setFormData] = useState({
+    email: '',
+    nombre: '',
+    password: ''
+  })
+  const [errores, setErrores] = useState<{ nombre?: string, general?: string }>({});
+
+  const handleNombreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const valor = e.target.value;
+    const soloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$/;
+    if (soloLetras.test(valor)) {
+      setFormData({ ...formData, nombre: valor });
+      setErrores({ ...errores, nombre: "" });
+    } else {
+      setErrores({ ...errores, nombre: "Solo se permiten letras y espacios." });
+    }
+  };
+
+  const handleCrearSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrores({}); 
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: { 
+          email: formData.email,
+          password: formData.password,
+          nombre: formData.nombre,
+          rol: 'operador'
+        },
+      });
+      
+      if (error) {
+        const errorData = await error.context.json();
+        throw new Error(errorData.error.message);
+      }
+      
+      setFormData({ email: '', nombre: '', password: '' })
+      setShowCreateModal(false)
+      onRecargar()
+      
+    } catch (err: any) {
+      console.error('Error creando operador:', err)
+      setErrores({ ...errores, general: err.message || "Error desconocido" });
+    }
+  }
+  
+  // --- NUEVO: Manejador para abrir el modal de edición ---
+  const handleEditarClick = (operador: Usuario) => {
+    setOperadorAEditar(operador);
+    setShowEditModal(true);
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Estás seguro de eliminar este operador?')) return
+    try {
+      await supabase.from('usuarios').delete().eq('id', id)
+      onRecargar()
+    } catch (error) {
+      console.error('Error eliminando operador:', error)
+    }
+  }
+
+  return (
+    <div>
+      <div className="mb-6">
+        <button
+          onClick={() => {
+            setErrores({}); 
+            setShowCreateModal(true);
+          }}
+          className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center gap-2 shadow-lg"
+        >
+          <Plus className="h-5 w-5" />
+          Nuevo Operador
+        </button>
+      </div>
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {operadores.map((op) => (
+          <div key={op.id} className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+            <div className="mb-4">
+              <h3 className="font-bold text-lg">{op.nombre}</h3>
+              <p className="text-sm text-slate-600">{op.email}</p>
+              <p className="text-xs text-slate-400 mt-1">
+                Creado: {new Date(op.fecha_creacion || '').toLocaleDateString('es-ES')}
+              </p>
+            </div>
+            {/* --- CAMBIO: Dos botones (Editar y Eliminar) --- */}
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleEditarClick(op)}
+                className="flex-1 px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium flex items-center justify-center gap-1"
+              >
+                <Edit className="h-4 w-4" />
+                Editar
+              </button>
+              <button
+                onClick={() => handleDelete(op.id)}
+                className="flex-1 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium flex items-center justify-center gap-1"
+              >
+                <Trash2 className="h-4 w-4" />
+                Eliminar
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Modal para CREAR Operador */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full">
+            <h2 className="text-2xl font-bold mb-6">Nuevo Operador</h2>
+            <form onSubmit={handleCrearSubmit} className="space-y-4">
+              {errores.general && (
+                <p className="text-red-600 text-sm p-3 bg-red-50 rounded-lg">{errores.general}</p>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Nombre</label>
+                <input type="text" value={formData.nombre} onChange={handleNombreChange} className={`w-full px-4 py-2 border ${errores.nombre ? "border-red-400" : "border-slate-300"} rounded-lg focus:ring-2 focus:ring-amber-500 outline-none`} placeholder="Ingrese nombre" required />
+                {errores.nombre && (<p className="text-red-600 text-sm mt-1">{errores.nombre}</p>)}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
+                <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Contraseña</label>
+                <input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" required minLength={6} />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button type="submit" className="flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium">
+                  Crear
+                </button>
+                <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium">
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      
+      {/* --- ¡NUEVO MODAL PARA EDITAR OPERADOR! --- */}
+      {showEditModal && operadorAEditar && (
+        <ModalEditarOperador 
+          operador={operadorAEditar}
+          onClose={() => setShowEditModal(false)}
+          onSave={() => {
+            setShowEditModal(false);
+            onRecargar();
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+// -----------------------------------------------------------
+// ¡NUEVO COMPONENTE! MODAL PARA EDITAR OPERADOR
+// -----------------------------------------------------------
+const ModalEditarOperador = ({
+  operador,
+  onClose,
+  onSave
+}: {
+  operador: Usuario
+  onClose: () => void
+  onSave: () => void
+}) => {
+  const { user: adminUser } = useAuth(); // ¡El admin que está logueado!
+  
+  const [formData, setFormData] = useState({
+    nombre: operador.nombre,
+    email: operador.email,
+    rol: operador.rol
+  });
+  const [nuevaPassword, setNuevaPassword] = useState('');
+  const [adminPassword, setAdminPassword] = useState(''); // La contraseña del admin para confirmar
+  
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    if (!adminPassword) {
+      setError('Debes ingresar tu contraseña de administrador para confirmar los cambios.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // 1. Llamamos a la nueva Edge Function
+      const { data, error: funcError } = await supabase.functions.invoke('admin-update-user', {
+        body: { 
+          admin_id: adminUser?.id,
+          admin_password: adminPassword,
+          target_user_id: operador.id,
+          nombre: formData.nombre,
+          email: formData.email,
+          rol: formData.rol,
+          nueva_password: nuevaPassword || undefined // Solo la envía si no está vacía
+        },
+      });
+
+      if (funcError) {
+        const errorData = await funcError.context.json();
+        throw new Error(errorData.error.message);
+      }
+      
+      onSave(); // Cierra el modal y recarga
+
+    } catch (err: any) {
+      setError(err.message || 'Error desconocido al actualizar.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">Editar Operador</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+        
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2 text-red-700">
+            <AlertCircle className="h-5 w-5 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Datos del Operador */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Nombre</label>
+            <input 
+              type="text" 
+              value={formData.nombre}
+              onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+              required 
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
+            <input 
+              type="email" 
+              value={formData.email}
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+              required 
+            />
+          </div>
+          
+          {/* Sección de Cambio de Rol */}
+          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <h3 className="font-medium text-slate-800 mb-2">Cambiar Rol</h3>
+            <select 
+              value={formData.rol}
+              onChange={(e) => setFormData({...formData, rol: e.target.value})}
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+            >
+              <option value="operador">Operador</option>
+              <option value="administrador">Administrador</option>
+            </select>
+            {formData.rol === 'administrador' && (
+              <p className="text-xs text-red-600 mt-2">
+                ¡Atención! Estás a punto de ascender este usuario a Administrador.
+              </p>
+            )}
+          </div>
+
+          {/* Sección de Cambio de Contraseña */}
+          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <h3 className="font-medium text-slate-800 mb-2">Cambiar Contraseña (Opcional)</h3>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Nueva Contraseña</label>
+            <input 
+              type="password" 
+              placeholder="Dejar en blanco para no cambiar"
+              value={nuevaPassword}
+              onChange={(e) => setNuevaPassword(e.target.value)}
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+              minLength={6}
+            />
+          </div>
+          
+          {/* Sección de Confirmación de Admin */}
+          <div className="p-4 bg-amber-50 rounded-lg border border-amber-300">
+            <h3 className="font-bold text-amber-800 mb-2">Confirmar Cambios</h3>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Ingresá TU contraseña de Admin
+            </label>
+            <input 
+              type="password" 
+              value={adminPassword}
+              onChange={(e) => setAdminPassword(e.target.value)}
+              className="w-full px-4 py-2 border border-amber-400 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+              required
+            />
+          </div>
+
+          {/* Botones de Acción */}
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
