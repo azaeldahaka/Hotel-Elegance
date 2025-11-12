@@ -406,6 +406,21 @@ const GestionOperadores = ({
     password: ''
   })
 
+  const [errores, setErrores] = useState<{ nombre?: string }>({});
+
+  const handleNombreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const valor = e.target.value;
+    const soloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$/; // Solo letras y espacios
+
+    if (soloLetras.test(valor)) {
+      setFormData({ ...formData, nombre: valor });
+      setErrores({ ...errores, nombre: "" });
+    } else {
+      setErrores({ ...errores, nombre: "Solo se permiten letras y espacios." });
+    }
+  };
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -485,10 +500,23 @@ const GestionOperadores = ({
                 <input
                   type="text"
                   value={formData.nombre}
-                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                  onChange={handleNombreChange}
+                  onPaste={(e) => {
+                    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$/.test(e.clipboardData.getData('text'))) {
+                      e.preventDefault();
+                      setErrores({ ...errores, nombre: "Solo se permiten letras y espacios." });
+                    }
+                  }}
+                  className={`w-full px-4 py-2 border ${
+                    errores.nombre ? "border-red-400" : "border-slate-300"
+                  } rounded-lg focus:ring-2 focus:ring-amber-500 outline-none`}
+                  placeholder="Ingrese nombre"
                   required
                 />
+                {errores.nombre && (
+                  <p className="text-red-600 text-sm mt-1">{errores.nombre}</p>
+                )}
+
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
