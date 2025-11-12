@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Habitacion, Usuario, Reserva } from '@/types'
-import { Home, Users, BarChart3, Plus, Edit, Trash2, X, Save, TrendingUp, DollarSign, Calendar, Filter } from 'lucide-react'
-// --- CAMBIO: Importamos los gráficos ---
+// --- CAMBIO: Añadimos XCircle para el nuevo botón ---
+import { Home, Users, BarChart3, Plus, Edit, Trash2, X, Save, TrendingUp, DollarSign, Calendar, Filter, AlertCircle, RefreshCw, XCircle } from 'lucide-react'
+// Importamos los gráficos
 import { 
   ResponsiveContainer, 
   LineChart, 
@@ -24,7 +25,6 @@ export const AdminDashboard = () => {
   const [habitaciones, setHabitaciones] = useState<Habitacion[]>([])
   const [operadores, setOperadores] = useState<Usuario[]>([])
   const [reservas, setReservas] = useState<Reserva[]>([])
-  // --- CAMBIO: Nuevo estado para guardar los clientes ---
   const [clientes, setClientes] = useState<Usuario[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -32,50 +32,26 @@ export const AdminDashboard = () => {
     cargarDatos()
   }, [])
 
-  // -----------------------------------------------------------
-  // FUNCIÓN DE CARGA ARREGLADA (CON PROMISE.ALL PARA TODO)
-  // ESTO ARREGLA LA RACE CONDITION DE USUARIOS Y HABITACIONES
-  // -----------------------------------------------------------
+  // Función de carga con Promise.all (Arregla la Race Condition)
   const cargarDatos = async () => {
     setLoading(true);
     try {
-      // 1. Creamos todas las promesas de consulta
-      const habPromise = supabase
-        .from('habitaciones')
-        .select('*')
-        .order('numero')
+      const habPromise = supabase.from('habitaciones').select('*').order('numero')
+      const opPromise = supabase.from('usuarios').select('*').eq('rol', 'operador').order('nombre')
+      const cliPromise = supabase.from('usuarios').select('*').eq('rol', 'usuario').order('nombre')
+      const resPromise = supabase.from('reservas').select('*').order('fecha_reserva', { ascending: false }) 
 
-      const opPromise = supabase
-        .from('usuarios')
-        .select('*')
-        .eq('rol', 'operador')
-        .order('nombre')
-        
-      // --- CAMBIO: Añadimos la carga de clientes ---
-      const cliPromise = supabase
-        .from('usuarios')
-        .select('*')
-        .eq('rol', 'usuario')
-        .order('nombre')
-
-      const resPromise = supabase
-        .from('reservas')
-        .select('*') 
-        .order('fecha_reserva', { ascending: false }) 
-
-      // 2. Las ejecutamos todas en paralelo y esperamos a que TODAS terminen
       const [habResult, opResult, resResult, cliResult] = await Promise.all([
         habPromise,
         opPromise,
         resPromise,
-        cliPromise // Añadimos la promesa de clientes
+        cliPromise
       ]);
       
-      // 3. Solo cuando todas terminaron, actualizamos el estado
       setHabitaciones(habResult.data || [])
       setOperadores(opResult.data || [])
       setReservas(resResult.data || [])
-      setClientes(cliResult.data || []) // Guardamos los clientes
+      setClientes(cliResult.data || [])
 
     } catch (error) {
       console.error('Error cargando datos:', error)
@@ -160,6 +136,7 @@ export const AdminDashboard = () => {
             reservas={reservas} 
             habitaciones={habitaciones}
             clientes={clientes} 
+            onRecargar={cargarDatos}
           />
         )}
         {activeTab === 'operadores' && (
@@ -174,17 +151,18 @@ export const AdminDashboard = () => {
 }
 
 // -----------------------------------------------------------
-// GESTIÓN DE RESERVAS (COMPONENTE 100% NUEVO CON TODOS LOS FILTROS)
+// GESTIÓN DE RESERVAS (CON BOTÓN DE EDITAR Y CANCELAR)
 // -----------------------------------------------------------
 const GestionReservas = ({ 
   reservas, 
   habitaciones,
-  clientes
+  clientes,
+  onRecargar
 }: { 
-  // Usamos 'any' porque el tipo 'Reserva' no incluye los datos del join
   reservas: any[], 
   habitaciones: Habitacion[],
-  clientes: Usuario[]
+  clientes: Usuario[],
+  onRecargar: () => void
 }) => {
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
@@ -192,16 +170,13 @@ const GestionReservas = ({
   const [filtroTipo, setFiltroTipo] = useState('');
   const [reservasFiltradas, setReservasFiltradas] = useState(reservas);
 
-  // Derivamos los tipos de habitación únicos de la lista de habitaciones
+  const [showModal, setShowModal] = useState(false);
+  const [reservaAEditar, setReservaAEditar] = useState<any | null>(null);
+
   const tiposDeHabitacion = [...new Set(habitaciones.map(h => h.tipo))];
 
   useEffect(() => {
-    setReservasFiltradas(reservas);
-  }, [reservas]);
-
-  const handleFiltrar = () => {
-    
-    // 1. Filtro de Fechas (lógica de timestamp)
+    // Re-filtra la lista cada vez que cambien los datos o los filtros
     let tsInicio = 0;
     if (fechaInicio) {
       const [y, m, d] = fechaInicio.split('-').map(Number);
@@ -214,118 +189,102 @@ const GestionReservas = ({
     }
 
     const filtradas = reservas.filter(reserva => {
-      // 1. Chequeo de Fecha
       const tsReserva = new Date(reserva.fecha_reserva).getTime();
-      if (tsReserva < tsInicio || tsReserva > tsFin) {
-        return false;
-      }
+      if (tsReserva < tsInicio || tsReserva > tsFin) return false;
       
-      // 2. Chequeo de Nombre
       if (filtroNombre) {
         const cliente = clientes.find(c => c.id === reserva.usuario_id);
-        if (!cliente || !cliente.nombre.toLowerCase().includes(filtroNombre.toLowerCase())) {
-          return false;
-        }
+        if (!cliente || !cliente.nombre.toLowerCase().includes(filtroNombre.toLowerCase())) return false;
       }
       
-      // 3. Chequeo de Tipo de Habitación
       if (filtroTipo) {
         const habitacion = habitaciones.find(h => h.id === reserva.habitacion_id);
-        if (!habitacion || habitacion.tipo !== filtroTipo) {
-          return false;
-        }
+        if (!habitacion || habitacion.tipo !== filtroTipo) return false;
       }
       
-      // Si pasa todo, se incluye
       return true;
     });
 
     setReservasFiltradas(filtradas);
-  };
+  }, [reservas, fechaInicio, fechaFin, filtroNombre, filtroTipo, clientes, habitaciones]);
 
   const handleLimpiar = () => {
     setFechaInicio('');
     setFechaFin('');
     setFiltroNombre('');
     setFiltroTipo('');
-    setReservasFiltradas(reservas);
+  };
+
+  const handleAbrirModal = (reserva: any) => {
+    setReservaAEditar(reserva);
+    setShowModal(true);
+  };
+
+  const handleCerrarModal = () => {
+    setShowModal(false);
+    setReservaAEditar(null);
+  };
+  
+  const handleGuardarEdicion = () => {
+    onRecargar();
+    handleCerrarModal();
+  };
+
+  // --- ¡NUEVA FUNCIÓN PARA CANCELAR! ---
+  const handleCancelar = async (reservaId: string) => {
+    if (!confirm('¿Estás seguro de que querés CANCELAR esta reserva? Esta acción no se puede deshacer.')) {
+      return;
+    }
+    
+    try {
+      await supabase
+        .from('reservas')
+        .update({ estado: 'cancelada' })
+        .eq('id', reservaId);
+        
+      onRecargar(); // Refresca la lista
+    } catch (err: any) {
+      console.error("Error al cancelar reserva:", err);
+      alert("Error al cancelar la reserva: " + err.message);
+    }
   };
 
   return (
     <div>
       {/* Barra de Filtros */}
       <div className="bg-white p-4 rounded-lg shadow-sm mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-        {/* Filtro Fecha Inicio */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">
             Desde (Fecha Reserva)
           </label>
-          <input
-            type="date"
-            value={fechaInicio}
-            onChange={(e) => setFechaInicio(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-          />
+          <input type="date" value={fechaInicio} onChange={(e) => setFechaInicio(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" />
         </div>
-        
-        {/* Filtro Fecha Fin */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">
             Hasta (Fecha Reserva)
           </label>
-          <input
-            type="date"
-            value={fechaFin}
-            onChange={(e) => setFechaFin(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-          />
+          <input type="date" value={fechaFin} onChange={(e) => setFechaFin(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" />
         </div>
-        
-        {/* Filtro Nombre Huésped */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">
             Nombre Huésped
           </label>
-          <input
-            type="text"
-            placeholder="Buscar por nombre..."
-            value={filtroNombre}
-            onChange={(e) => setFiltroNombre(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-          />
+          <input type="text" placeholder="Buscar por nombre..." value={filtroNombre} onChange={(e) => setFiltroNombre(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" />
         </div>
-        
-        {/* Filtro Tipo Habitación */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">
             Tipo Habitación
           </label>
-          <select
-            value={filtroTipo}
-            onChange={(e) => setFiltroTipo(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-          >
+          <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none">
             <option value="">Todos</option>
             {tiposDeHabitacion.map(tipo => (
               <option key={tipo} value={tipo}>{tipo}</option>
             ))}
           </select>
         </div>
-
-        {/* Botones */}
         <div className="md:col-span-4 flex gap-4">
-          <button
-            onClick={handleFiltrar}
-            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center gap-2"
-          >
-            <Filter className="h-4 w-4" />
-            Filtrar
-          </button>
-          <button
-            onClick={handleLimpiar}
-            className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium"
-          >
-            Limpiar
+          <button onClick={handleLimpiar} className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium">
+            Limpiar Filtros
           </button>
         </div>
       </div>
@@ -338,59 +297,84 @@ const GestionReservas = ({
           </p>
         )}
         {reservasFiltradas.map((reserva) => {
-          // --- AHORA ESTO FUNCIONA GRACIAS AL PROMISE.ALL ---
           const habInfo = habitaciones.find(h => h.id === reserva.habitacion_id);
           const clienteInfo = clientes.find(c => c.id === reserva.usuario_id);
 
           return (
-            <div key={reserva.id} className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h3 className="font-bold text-lg text-slate-900">
-                    {/* --- CAMBIO: MOSTRAMOS EL NOMBRE --- */}
-                    {clienteInfo ? clienteInfo.nombre : `ID Usuario: ${reserva.usuario_id.slice(0,8)}`}
-                  </h3>
-                  <p className="text-sm text-slate-500">
-                    {clienteInfo ? clienteInfo.email : 'Email no encontrado'}
+            <div key={reserva.id} className="bg-white rounded-lg p-6 shadow-sm border border-slate-200 flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 className="font-bold text-lg text-slate-900">
+                      {clienteInfo ? clienteInfo.nombre : `ID Usuario: ${reserva.usuario_id.slice(0,8)}`}
+                    </h3>
+                    <p className="text-sm text-slate-500">
+                      {clienteInfo ? clienteInfo.email : 'Email no encontrado'}
+                    </p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    reserva.estado === 'activa' ? 'bg-green-100 text-green-700' :
+                    reserva.estado === 'completada' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'
+                  }`}>
+                    {reserva.estado}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-500 mb-2 font-semibold">
+                  {habInfo ? `Habitación ${habInfo.numero} (${habInfo.tipo})` : `ID Habitación: ${reserva.habitacion_id.slice(0, 8)}...`}
+                </p>
+                <div className="text-sm space-y-1 text-slate-700">
+                  <p><strong>Check-in:</strong> {new Date(reserva.fecha_entrada + 'T00:00:00').toLocaleDateString('es-ES')}</p>
+                  <p><strong>Check-out:</strong> {new Date(reserva.fecha_salida + 'T00:00:00').toLocaleDateString('es-ES')}</p>
+                  <p><strong>Huéspedes:</strong> {reserva.num_huespedes}</p>
+                  <p className="font-bold text-lg text-amber-600 mt-2">Total: ${reserva.total.toLocaleString('es-ES')}</p>
+                  <p className="text-xs text-slate-400 pt-2 border-t border-slate-100 mt-2">
+                    Reservado el: {new Date(reserva.fecha_reserva).toLocaleString('es-ES')}
                   </p>
                 </div>
-                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                  reserva.estado === 'activa' 
-                    ? 'bg-green-100 text-green-700'
-                    : reserva.estado === 'completada'
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'bg-red-100 text-red-700'
-                }`}>
-                  {reserva.estado}
-                </span>
               </div>
-              
-              <p className="text-sm text-slate-500 mb-2 font-semibold">
-                {habInfo 
-                  ? `Habitación ${habInfo.numero} (${habInfo.tipo})`
-                  : `ID Habitación: ${reserva.habitacion_id.slice(0, 8)}...`
-                }
-              </p>
-              
-              <div className="text-sm space-y-1 text-slate-700">
-                <p><strong>Check-in:</strong> {new Date(reserva.fecha_entrada + 'T00:00:00').toLocaleDateString('es-ES')}</p>
-                <p><strong>Check-out:</strong> {new Date(reserva.fecha_salida + 'T00:00:00').toLocaleDateString('es-ES')}</p>
-                <p><strong>Huéspedes:</strong> {reserva.num_huespedes}</p>
-                <p className="font-bold text-lg text-amber-600 mt-2">Total: ${reserva.total.toLocaleString('es-ES')}</p>
-                <p className="text-xs text-slate-400 pt-2 border-t border-slate-100 mt-2">
-                  Reservado el: {new Date(reserva.fecha_reserva).toLocaleString('es-ES')}
-                </p>
+
+              {/* --- ¡NUEVO LAYOUT DE BOTONES! --- */}
+              <div className="mt-4 flex gap-2">
+                <button
+                  onClick={() => handleAbrirModal(reserva)}
+                  // Solo se puede editar si está 'activa'
+                  disabled={reserva.estado !== 'activa'}
+                  className="flex-1 px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Edit className="h-4 w-4" />
+                  Editar
+                </button>
+                <button
+                  onClick={() => handleCancelar(reserva.id)}
+                  // Solo se puede cancelar si está 'activa'
+                  disabled={reserva.estado !== 'activa'}
+                  className="flex-1 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <XCircle className="h-4 w-4" />
+                  Cancelar
+                </button>
               </div>
+
             </div>
           )
         })}
       </div>
+
+      {showModal && (
+        <ModalEditarReserva 
+          reserva={reservaAEditar}
+          habitaciones={habitaciones}
+          clientes={clientes} 
+          onClose={handleCerrarModal}
+          onSave={handleGuardarEdicion}
+        />
+      )}
     </div>
   );
 }
 
 // -----------------------------------------------------------
-// GESTIÓN DE HABITACIONES (SIN CAMBIOS, PERO NECESARIO)
+// GESTIÓN DE HABITACIONES
 // -----------------------------------------------------------
 const GestionHabitaciones = ({ 
   habitaciones, 
@@ -507,11 +491,8 @@ const GestionHabitaciones = ({
                 <p className="text-sm text-slate-600">{hab.tipo}</p>
               </div>
               <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                hab.estado === 'disponible' 
-                  ? 'bg-green-100 text-green-700'
-                  : hab.estado === 'ocupada'
-                  ? 'bg-red-100 text-red-700'
-                  : 'bg-yellow-100 text-yellow-700'
+                hab.estado === 'disponible' ? 'bg-green-100 text-green-700' :
+                hab.estado === 'ocupada' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
               }`}>
                 {hab.estado}
               </span>
@@ -558,107 +539,44 @@ const GestionHabitaciones = ({
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Número
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.numero}
-                    onChange={(e) => setFormData({ ...formData, numero: e.target.value })}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-                    required
-                  />
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Número</label>
+                  <input type="text" value={formData.numero} onChange={(e) => setFormData({ ...formData, numero: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" required />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Tipo
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.tipo}
-                    onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-                    required
-                  />
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Tipo</label>
+                  <input type="text" value={formData.tipo} onChange={(e) => setFormData({ ...formData, tipo: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" required />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Precio por Noche
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.precio_noche}
-                    onChange={(e) => setFormData({ ...formData, precio_noche: e.target.value })}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-                    required
-                  />
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Precio por Noche</label>
+                  <input type="number" value={formData.precio_noche} onChange={(e) => setFormData({ ...formData, precio_noche: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" required />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Capacidad
-                  </label>
-                  <input
-                    type="number"
-                    value={formData.capacidad}
-                    onChange={(e) => setFormData({ ...formData, capacidad: e.target.value })}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-                    required
-                  />
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Capacidad</label>
+                  <input type="number" value={formData.capacidad} onChange={(e) => setFormData({ ...formData, capacidad: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" required />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Estado
-                  </label>
-                  <select
-                    value={formData.estado}
-                    onChange={(e) => setFormData({ ...formData, estado: e.target.value })}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-                  >
+                  <label className="block text-sm font-medium text-slate-700 mb-2">Estado</label>
+                  <select value={formData.estado} onChange={(e) => setFormData({ ...formData, estado: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none">
                     <option value="disponible">Disponible</option>
                     <option value="ocupada">Ocupada</option>
                     <option value="mantenimiento">Mantenimiento</option>
                   </select>
                 </div>
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Amenidades (separadas por coma)
-                </label>
-                <input
-                  type="text"
-                  value={formData.amenidades}
-                  onChange={(e) => setFormData({ ...formData, amenidades: e.target.value })}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-                  placeholder="WiFi, TV, Aire acondicionado"
-                />
+                <label className="block text-sm font-medium text-slate-700 mb-2">Amenidades (separadas por coma)</label>
+                <input type="text" value={formData.amenidades} onChange={(e) => setFormData({ ...formData, amenidades: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" placeholder="WiFi, TV, Aire acondicionado" />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Descripción
-                </label>
-                <textarea
-                  value={formData.descripcion}
-                  onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-                  rows={3}
-                />
+                <label className="block text-sm font-medium text-slate-700 mb-2">Descripción</label>
+                <textarea value={formData.descripcion} onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" rows={3} />
               </div>
-
               <div className="flex gap-3 pt-4">
-                <button
-                  type="submit"
-                  className="flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center justify-center gap-2"
-                >
+                <button type="submit" className="flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center justify-center gap-2">
                   <Save className="h-5 w-5" />
                   Guardar
                 </button>
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium"
-                >
+                <button type="button" onClick={resetForm} className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium">
                   Cancelar
                 </button>
               </div>
@@ -671,7 +589,7 @@ const GestionHabitaciones = ({
 }
 
 // -----------------------------------------------------------
-// GESTIÓN DE OPERADORES (SIN CAMBIOS, PERO NECESARIO)
+// GESTIÓN DE OPERADORES (CON LLAMADA A EDGE FUNCTION)
 // -----------------------------------------------------------
 const GestionOperadores = ({ 
   operadores, 
@@ -686,8 +604,6 @@ const GestionOperadores = ({
     nombre: '',
     password: ''
   })
-
-  // --- ARREGLO: Limpiamos el error 'general' al cambiar el nombre ---
   const [errores, setErrores] = useState<{ nombre?: string, general?: string }>({});
 
   const handleNombreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -701,10 +617,6 @@ const GestionOperadores = ({
     }
   };
 
-  // -----------------------------------------------------------
-  // HANDLESUBMIT 100% CORREGIDO
-  // (Llama a la Edge Function 'create-user')
-  // -----------------------------------------------------------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrores({}); // Limpiar errores viejos
@@ -722,7 +634,6 @@ const GestionOperadores = ({
       
       if (error) {
         // Si la Edge Function devuelve un error (ej: "Email ya existe")
-        // lo tomamos y lo mostramos
         const errorData = await error.context.json();
         throw new Error(errorData.error.message);
       }
@@ -790,7 +701,6 @@ const GestionOperadores = ({
           <div className="bg-white rounded-xl p-6 max-w-md w-full">
             <h2 className="text-2xl font-bold mb-6">Nuevo Operador</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Mostramos el error general */}
               {errores.general && (
                 <p className="text-red-600 text-sm p-3 bg-red-50 rounded-lg">{errores.general}</p>
               )}
@@ -822,45 +732,37 @@ const GestionOperadores = ({
     </div>
   )
 }
+
 // -----------------------------------------------------------
-// ESTADÍSTICAS (COMPONENTE 100% NUEVO CON GRÁFICOS)
+// ESTADÍSTICAS (CON GRÁFICOS)
 // -----------------------------------------------------------
 const Estadisticas = ({ 
   habitaciones, 
   reservas 
 }: { 
   habitaciones: Habitacion[]
-  reservas: any[] // Usamos 'any' porque el tipo Reserva no está actualizado
+  reservas: any[] 
 }) => {
 
-  // --- 1. Lógica para KPIs (Indicadores Clave) ---
   const ingresosCompletadas = reservas
     .filter(r => r.estado === 'completada')
     .reduce((sum, r) => sum + r.total, 0)
 
   const reservasActivas = reservas.filter(r => r.estado === 'activa').length
-  
   const totalHabitaciones = habitaciones.length
-  
   const habitacionesDisponibles = habitaciones.filter(h => h.estado === 'disponible').length
 
-  // --- 2. Lógica para Gráfico de Ingresos por Mes ---
   const getIngresosPorMes = () => {
-    const meses = [
-      "Ene", "Feb", "Mar", "Abr", "May", "Jun", 
-      "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"
-    ];
-    // Agrupamos los ingresos de reservas completadas por mes
+    const meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
     const ingresos = reservas
       .filter(r => r.estado === 'completada')
       .reduce((acc, r) => {
-        const mes = new Date(r.fecha_reserva).getMonth(); // 0 = Enero, 11 = Diciembre
+        const mes = new Date(r.fecha_reserva).getMonth();
         const nombreMes = meses[mes];
         acc[nombreMes] = (acc[nombreMes] || 0) + r.total;
         return acc;
       }, {} as Record<string, number>);
 
-    // Lo convertimos al formato que espera Recharts
     return meses.map(mes => ({
       name: mes,
       Ingresos: ingresos[mes] || 0,
@@ -868,7 +770,6 @@ const Estadisticas = ({
   };
   const dataIngresos = getIngresosPorMes();
 
-  // --- 3. Lógica para Gráfico de Popularidad (Reservas por Tipo) ---
   const getReservasPorTipo = () => {
     const tipos = reservas.reduce((acc, r) => {
       const habitacion = habitaciones.find(h => h.id === r.habitacion_id);
@@ -879,14 +780,10 @@ const Estadisticas = ({
       return acc;
     }, {} as Record<string, number>);
     
-    // Lo convertimos al formato de Recharts
-    return Object.entries(tipos).map(([name, value]) => ({
-      name,
-      value,
-    }));
+    return Object.entries(tipos).map(([name, value]) => ({ name, value }));
   };
   const dataTipos = getReservasPorTipo();
-  const COLORS = ['#FFBB28', '#FF8042', '#0088FE', '#00C49F']; // Colores para el gráfico de torta
+  const COLORS = ['#FFBB28', '#FF8042', '#0088FE', '#00C49F'];
 
   return (
     <div className="space-y-8">
@@ -926,7 +823,6 @@ const Estadisticas = ({
 
       {/* Gráficos */}
       <div className="grid md:grid-cols-2 gap-6">
-        {/* Gráfico de Ingresos por Mes */}
         <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
           <h3 className="text-lg font-bold text-slate-900 mb-4">Ingresos por Mes (Completados)</h3>
           <div style={{ width: '100%', height: 300 }}>
@@ -943,7 +839,6 @@ const Estadisticas = ({
           </div>
         </div>
 
-        {/* Gráfico de Popularidad de Habitaciones */}
         <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
           <h3 className="text-lg font-bold text-slate-900 mb-4">Popularidad de Habitaciones</h3>
           <div style={{ width: '100%', height: 300 }}>
@@ -969,6 +864,271 @@ const Estadisticas = ({
             </ResponsiveContainer>
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// -----------------------------------------------------------
+// ¡NUEVO COMPONENTE! MODAL PARA EDITAR RESERVAS
+// -----------------------------------------------------------
+const ModalEditarReserva = ({
+  reserva,
+  habitaciones,
+  clientes,
+  onClose,
+  onSave
+}: {
+  reserva: any
+  habitaciones: Habitacion[]
+  clientes: Usuario[]
+  onClose: () => void
+  onSave: () => void
+}) => {
+  const [formData, setFormData] = useState({
+    habitacion_id: reserva.habitacion_id,
+    fecha_entrada: reserva.fecha_entrada,
+    fecha_salida: reserva.fecha_salida,
+    num_huespedes: reserva.num_huespedes
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [nuevoTotal, setNuevoTotal] = useState(reserva.total);
+  const [diferencia, setDiferencia] = useState(0);
+
+  // ¡NUEVO! Buscar el cliente para el título
+  const clienteInfo = clientes.find(c => c.id === reserva.usuario_id);
+  const tituloModal = clienteInfo 
+    ? `Editar Reserva de ${clienteInfo.nombre}` 
+    : `Editar Reserva #${reserva.id.slice(0, 8)}`;
+
+
+  // Recalcular el total cada vez que cambien los datos del formulario
+  useEffect(() => {
+    try {
+      const { fecha_entrada, fecha_salida, habitacion_id } = formData;
+      const habInfo = habitaciones.find(h => h.id === habitacion_id);
+      
+      if (fecha_entrada && fecha_salida && habInfo) {
+        const entrada = new Date(fecha_entrada + 'T00:00:00');
+        const salida = new Date(fecha_salida + 'T00:00:00');
+        const noches = Math.ceil((salida.getTime() - entrada.getTime()) / (1000 * 60 * 60 * 24));
+        
+        if (noches > 0) {
+          const totalCalc = noches * habInfo.precio_noche;
+          setNuevoTotal(totalCalc);
+          setDiferencia(totalCalc - reserva.total);
+        } else {
+          setNuevoTotal(0);
+          setDiferencia(0 - reserva.total);
+        }
+      }
+    } catch (e) {
+      console.error("Error calculando total", e);
+      setNuevoTotal(0);
+    }
+  }, [formData, habitaciones, reserva.total]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      // 1. Validar Datos
+      const habInfo = habitaciones.find(h => h.id === formData.habitacion_id);
+      if (!habInfo) throw new Error("Habitación no encontrada");
+
+      if (formData.num_huespedes > habInfo.capacidad) {
+        throw new Error(`La capacidad máxima de esta habitación es ${habInfo.capacidad}`);
+      }
+      
+      const entrada = new Date(formData.fecha_entrada);
+      const salida = new Date(formData.fecha_salida);
+      if (salida <= entrada) {
+        throw new Error("La fecha de salida debe ser posterior a la de entrada");
+      }
+
+      // 2. Validar Disponibilidad (¡IMPORTANTE!)
+      const fechasCambiaron = formData.fecha_entrada !== reserva.fecha_entrada || formData.fecha_salida !== reserva.fecha_salida;
+      const habitacionCambio = formData.habitacion_id !== reserva.habitacion_id;
+
+      if (fechasCambiaron || habitacionCambio) {
+        const { data, error: funcError } = await supabase.functions.invoke('check-room-availability', {
+          body: {
+            habitacion_id: formData.habitacion_id,
+            fecha_entrada: formData.fecha_entrada,
+            fecha_salida: formData.fecha_salida,
+            reserva_id_excluir: reserva.id 
+          }
+        });
+        
+        if (funcError) {
+          const errorData = await funcError.context.json();
+          throw new Error(errorData.error.message || "Error al verificar disponibilidad");
+        }
+        
+        const responseData = data?.data || data;
+        if (!responseData?.available) {
+          throw new Error('La habitación no está disponible para las nuevas fechas seleccionadas');
+        }
+      }
+
+      // 3. Guardar en BDD
+      await supabase
+        .from('reservas')
+        .update({
+          ...formData,
+          total: nuevoTotal,
+          num_huespedes: Number(formData.num_huespedes)
+        })
+        .eq('id', reserva.id);
+
+      onSave(); // Llama a onRecargar y cierra el modal
+      
+    } catch (err: any) {
+      setError(err.message || "Error al actualizar la reserva");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">
+            {tituloModal}
+          </h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+        
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2 text-red-700">
+            <AlertCircle className="h-5 w-5 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Fila 1: Habitación y Huéspedes */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Habitación
+              </label>
+              <select
+                name="habitacion_id"
+                value={formData.habitacion_id}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+              >
+                {habitaciones.map(h => (
+                  <option key={h.id} value={h.id}>
+                    N° {h.numero} - {h.tipo} (${h.precio_noche}/noche)
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                N° Huéspedes
+              </label>
+              <input
+                type="number"
+                name="num_huespedes"
+                value={formData.num_huespedes}
+                onChange={handleChange}
+                min="1"
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                required
+              />
+            </div>
+          </div>
+          
+          {/* Fila 2: Fechas */}
+          <div className="grid md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Fecha de Entrada
+              </label>
+              <input
+                type="date"
+                name="fecha_entrada"
+                value={new Date(formData.fecha_entrada).toISOString().split('T')[0]}
+                onChange={handleChange}
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-2">
+                Fecha de Salida
+              </label>
+              <input
+                type="date"
+                name="fecha_salida"
+                value={new Date(formData.fecha_salida).toISOString().split('T')[0]}
+                onChange={handleChange}
+                min={new Date(formData.fecha_entrada).toISOString().split('T')[0]}
+                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                required
+              />
+            </div>
+          </div>
+
+          {/* Fila 3: Cálculo de Precios */}
+          <div className="pt-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-600">Total Original:</span>
+              <span className="font-medium text-slate-700">${reserva.total.toLocaleString('es-ES')}</span>
+            </div>
+            <div className="flex justify-between text-lg">
+              <span className="text-slate-700">Nuevo Total:</span>
+              <span className="font-bold text-amber-600">${nuevoTotal.toLocaleString('es-ES')}</span>
+            </div>
+            <div className={`flex justify-between text-lg font-bold p-2 rounded-lg ${
+              diferencia > 0 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+            }`}>
+              <span>
+                {diferencia > 0 ? 'Diferencia a Pagar:' : 'Diferencia a Favor:'}
+              </span>
+              <span>
+                ${Math.abs(diferencia).toLocaleString('es-ES')}
+              </span>
+            </div>
+          </div>
+
+          {/* Fila 4: Botones */}
+          <div className="flex gap-3 pt-4">
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {loading ? <RefreshCw className="animate-spin h-5 w-5" /> : <Save className="h-5 w-5" />}
+              Guardar Cambios
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   )
