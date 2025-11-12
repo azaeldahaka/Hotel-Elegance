@@ -4,12 +4,21 @@
 # Ignorar la carpeta de 'build' (lo que genera Vite al compilar)
 /dist
 
-# Archivos de entorno (¡Contienen credenciales!)
-.env
-.env.local
-
-CREDENCIALES.md
-
 # Logs
 npm-debug.log*
 pnpm-debug.log*
+
+# Ignorar TODA la carpeta node_modules del proyecto
+hotel-management/node_modules/
+
+# Ignorar la caché de Vite (donde están los archivos ?? )
+hotel-management/.vite/
+
+# Ignorar la carpeta de build
+hotel-management/dist/
+
+# Archivos de entorno y credenciales
+*.env
+*.env.local
+CREDENCIALES.md
+PROYECTO_HOTEL.md

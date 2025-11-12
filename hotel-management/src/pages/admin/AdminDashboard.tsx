@@ -3,6 +3,20 @@ import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Habitacion, Usuario, Reserva } from '@/types'
 import { Home, Users, BarChart3, Plus, Edit, Trash2, X, Save, TrendingUp, DollarSign, Calendar, Filter } from 'lucide-react'
+// --- CAMBIO: Importamos los gráficos ---
+import { 
+  ResponsiveContainer, 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts'
 
 export const AdminDashboard = () => {
   const { user } = useAuth()
@@ -10,34 +24,59 @@ export const AdminDashboard = () => {
   const [habitaciones, setHabitaciones] = useState<Habitacion[]>([])
   const [operadores, setOperadores] = useState<Usuario[]>([])
   const [reservas, setReservas] = useState<Reserva[]>([])
+  // --- CAMBIO: Nuevo estado para guardar los clientes ---
+  const [clientes, setClientes] = useState<Usuario[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     cargarDatos()
   }, [])
 
+  // -----------------------------------------------------------
+  // FUNCIÓN DE CARGA ARREGLADA (CON PROMISE.ALL PARA TODO)
+  // ESTO ARREGLA LA RACE CONDITION DE USUARIOS Y HABITACIONES
+  // -----------------------------------------------------------
   const cargarDatos = async () => {
     setLoading(true);
     try {
-      const { data: habData } = await supabase
+      // 1. Creamos todas las promesas de consulta
+      const habPromise = supabase
         .from('habitaciones')
         .select('*')
         .order('numero')
 
-      const { data: opData } = await supabase
+      const opPromise = supabase
         .from('usuarios')
         .select('*')
         .eq('rol', 'operador')
         .order('nombre')
+        
+      // --- CAMBIO: Añadimos la carga de clientes ---
+      const cliPromise = supabase
+        .from('usuarios')
+        .select('*')
+        .eq('rol', 'usuario')
+        .order('nombre')
 
-      const { data: resData } = await supabase
+      const resPromise = supabase
         .from('reservas')
-        .select('*') // Volvemos a un select simple
+        .select('*') 
         .order('fecha_reserva', { ascending: false }) 
 
-      setHabitaciones(habData || [])
-      setOperadores(opData || [])
-      setReservas(resData || [])
+      // 2. Las ejecutamos todas en paralelo y esperamos a que TODAS terminen
+      const [habResult, opResult, resResult, cliResult] = await Promise.all([
+        habPromise,
+        opPromise,
+        resPromise,
+        cliPromise // Añadimos la promesa de clientes
+      ]);
+      
+      // 3. Solo cuando todas terminaron, actualizamos el estado
+      setHabitaciones(habResult.data || [])
+      setOperadores(opResult.data || [])
+      setReservas(resResult.data || [])
+      setClientes(cliResult.data || []) // Guardamos los clientes
+
     } catch (error) {
       console.error('Error cargando datos:', error)
     } finally {
@@ -64,7 +103,7 @@ export const AdminDashboard = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-4 mb-8 border-b border-slate-200">
+        <div className="flex flex-wrap gap-4 mb-8 border-b border-slate-200">
           <button
             onClick={() => setActiveTab('habitaciones')}
             className={`px-6 py-3 font-medium transition-colors flex items-center gap-2 ${
@@ -117,7 +156,11 @@ export const AdminDashboard = () => {
           <GestionHabitaciones habitaciones={habitaciones} onRecargar={cargarDatos} />
         )}
         {activeTab === 'reservas' && (
-          <GestionReservas reservas={reservas} />
+          <GestionReservas 
+            reservas={reservas} 
+            habitaciones={habitaciones}
+            clientes={clientes} 
+          />
         )}
         {activeTab === 'operadores' && (
           <GestionOperadores operadores={operadores} onRecargar={cargarDatos} />
@@ -130,61 +173,92 @@ export const AdminDashboard = () => {
   )
 }
 
-// --- GESTIÓN DE RESERVAS (CON FILTRO FUNCIONAL) ---
-const GestionReservas = ({ reservas }: { reservas: Reserva[] }) => {
+// -----------------------------------------------------------
+// GESTIÓN DE RESERVAS (COMPONENTE 100% NUEVO CON TODOS LOS FILTROS)
+// -----------------------------------------------------------
+const GestionReservas = ({ 
+  reservas, 
+  habitaciones,
+  clientes
+}: { 
+  // Usamos 'any' porque el tipo 'Reserva' no incluye los datos del join
+  reservas: any[], 
+  habitaciones: Habitacion[],
+  clientes: Usuario[]
+}) => {
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
+  const [filtroNombre, setFiltroNombre] = useState('');
+  const [filtroTipo, setFiltroTipo] = useState('');
   const [reservasFiltradas, setReservasFiltradas] = useState(reservas);
 
-  // Sincroniza la lista filtrada con las props (para que se muestren por defecto)
+  // Derivamos los tipos de habitación únicos de la lista de habitaciones
+  const tiposDeHabitacion = [...new Set(habitaciones.map(h => h.tipo))];
+
   useEffect(() => {
     setReservasFiltradas(reservas);
   }, [reservas]);
 
-  // Función de filtrar (Lógica de Timestamps - A prueba de balas)
   const handleFiltrar = () => {
     
-    let tsInicio = 0; // Por defecto, el inicio de los tiempos
+    // 1. Filtro de Fechas (lógica de timestamp)
+    let tsInicio = 0;
     if (fechaInicio) {
-      // "2025-11-12" -> [2025, 11, 12]
       const [y, m, d] = fechaInicio.split('-').map(Number);
-      // Creamos la fecha a las 00:00:00 (hora local)
       tsInicio = new Date(y, m - 1, d, 0, 0, 0).getTime();
     }
-    
-    let tsFin = Infinity; // Por defecto, el infinito
+    let tsFin = Infinity;
     if (fechaFin) {
       const [y, m, d] = fechaFin.split('-').map(Number);
-      // Creamos la fecha a las 23:59:59 (hora local)
       tsFin = new Date(y, m - 1, d, 23, 59, 59).getTime();
     }
 
-    // 2. FILTRAR
     const filtradas = reservas.filter(reserva => {
-      // Convertimos el timestamp de la BDD (que es UTC) a un número
+      // 1. Chequeo de Fecha
       const tsReserva = new Date(reserva.fecha_reserva).getTime();
-
-      // 3. Comparamos los números
-      return tsReserva >= tsInicio && tsReserva <= tsFin;
+      if (tsReserva < tsInicio || tsReserva > tsFin) {
+        return false;
+      }
+      
+      // 2. Chequeo de Nombre
+      if (filtroNombre) {
+        const cliente = clientes.find(c => c.id === reserva.usuario_id);
+        if (!cliente || !cliente.nombre.toLowerCase().includes(filtroNombre.toLowerCase())) {
+          return false;
+        }
+      }
+      
+      // 3. Chequeo de Tipo de Habitación
+      if (filtroTipo) {
+        const habitacion = habitaciones.find(h => h.id === reserva.habitacion_id);
+        if (!habitacion || habitacion.tipo !== filtroTipo) {
+          return false;
+        }
+      }
+      
+      // Si pasa todo, se incluye
+      return true;
     });
 
     setReservasFiltradas(filtradas);
   };
 
-  // Función para limpiar los filtros y mostrar todo
   const handleLimpiar = () => {
     setFechaInicio('');
     setFechaFin('');
+    setFiltroNombre('');
+    setFiltroTipo('');
     setReservasFiltradas(reservas);
   };
 
   return (
     <div>
       {/* Barra de Filtros */}
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-6 flex flex-wrap items-center gap-4">
+      <div className="bg-white p-4 rounded-lg shadow-sm mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        {/* Filtro Fecha Inicio */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">
-            Desde (Fecha de Reserva)
+            Desde (Fecha Reserva)
           </label>
           <input
             type="date"
@@ -193,9 +267,11 @@ const GestionReservas = ({ reservas }: { reservas: Reserva[] }) => {
             className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
           />
         </div>
+        
+        {/* Filtro Fecha Fin */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">
-            Hasta (Fecha de Reserva)
+            Hasta (Fecha Reserva)
           </label>
           <input
             type="date"
@@ -204,65 +280,118 @@ const GestionReservas = ({ reservas }: { reservas: Reserva[] }) => {
             className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
           />
         </div>
-        <button
-          onClick={handleFiltrar}
-          className="mt-6 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center gap-2"
-        >
-          <Filter className="h-4 w-4" />
-          Filtrar
-        </button>
-        <button
-          onClick={handleLimpiar}
-          className="mt-6 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium"
-        >
-          Limpiar
-        </button>
+        
+        {/* Filtro Nombre Huésped */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Nombre Huésped
+          </label>
+          <input
+            type="text"
+            placeholder="Buscar por nombre..."
+            value={filtroNombre}
+            onChange={(e) => setFiltroNombre(e.target.value)}
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+          />
+        </div>
+        
+        {/* Filtro Tipo Habitación */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">
+            Tipo Habitación
+          </label>
+          <select
+            value={filtroTipo}
+            onChange={(e) => setFiltroTipo(e.target.value)}
+            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+          >
+            <option value="">Todos</option>
+            {tiposDeHabitacion.map(tipo => (
+              <option key={tipo} value={tipo}>{tipo}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Botones */}
+        <div className="md:col-span-4 flex gap-4">
+          <button
+            onClick={handleFiltrar}
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center gap-2"
+          >
+            <Filter className="h-4 w-4" />
+            Filtrar
+          </button>
+          <button
+            onClick={handleLimpiar}
+            className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium"
+          >
+            Limpiar
+          </button>
+        </div>
       </div>
 
       {/* Lista de Reservas Filtradas */}
       <div className="grid md:grid-cols-2 gap-6">
         {reservasFiltradas.length === 0 && (
           <p className="text-slate-500 col-span-2">
-            No se encontraron reservas para las fechas seleccionadas.
+            No se encontraron reservas con esos filtros.
           </p>
         )}
-        {reservasFiltradas.map((reserva) => (
-          <div key={reserva.id} className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="font-bold text-lg text-slate-900">Reserva #{reserva.id.slice(0, 8)}</h3>
-              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                reserva.estado === 'activa' 
-                  ? 'bg-green-100 text-green-700'
-                  : reserva.estado === 'completada'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'bg-red-100 text-red-700'
-              }`}>
-                {reserva.estado}
-              </span>
-            </div>
-            
-            <p className="text-sm text-slate-500 mb-2">
-              Habitación ID: {reserva.habitacion_id.slice(0, 8)}...
-            </p>
-            
-            <div className="text-sm space-y-1 text-slate-700">
-              <p><strong>Check-in:</strong> {new Date(reserva.fecha_entrada + 'T00:00:00').toLocaleDateString('es-ES')}</p>
-              <p><strong>Check-out:</strong> {new Date(reserva.fecha_salida + 'T00:00:00').toLocaleDateString('es-ES')}</p>
-              <p><strong>Huéspedes:</strong> {reserva.num_huespedes}</p>
-              <p className="font-bold text-lg text-amber-600 mt-2">Total: ${reserva.total.toLocaleString('es-ES')}</p>
-              <p className="text-xs text-slate-400 pt-2 border-t border-slate-100 mt-2">
-                Reservado el: {new Date(reserva.fecha_reserva).toLocaleString('es-ES')}
+        {reservasFiltradas.map((reserva) => {
+          // --- AHORA ESTO FUNCIONA GRACIAS AL PROMISE.ALL ---
+          const habInfo = habitaciones.find(h => h.id === reserva.habitacion_id);
+          const clienteInfo = clientes.find(c => c.id === reserva.usuario_id);
+
+          return (
+            <div key={reserva.id} className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <h3 className="font-bold text-lg text-slate-900">
+                    {/* --- CAMBIO: MOSTRAMOS EL NOMBRE --- */}
+                    {clienteInfo ? clienteInfo.nombre : `ID Usuario: ${reserva.usuario_id.slice(0,8)}`}
+                  </h3>
+                  <p className="text-sm text-slate-500">
+                    {clienteInfo ? clienteInfo.email : 'Email no encontrado'}
+                  </p>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  reserva.estado === 'activa' 
+                    ? 'bg-green-100 text-green-700'
+                    : reserva.estado === 'completada'
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-red-100 text-red-700'
+                }`}>
+                  {reserva.estado}
+                </span>
+              </div>
+              
+              <p className="text-sm text-slate-500 mb-2 font-semibold">
+                {habInfo 
+                  ? `Habitación ${habInfo.numero} (${habInfo.tipo})`
+                  : `ID Habitación: ${reserva.habitacion_id.slice(0, 8)}...`
+                }
               </p>
+              
+              <div className="text-sm space-y-1 text-slate-700">
+                <p><strong>Check-in:</strong> {new Date(reserva.fecha_entrada + 'T00:00:00').toLocaleDateString('es-ES')}</p>
+                <p><strong>Check-out:</strong> {new Date(reserva.fecha_salida + 'T00:00:00').toLocaleDateString('es-ES')}</p>
+                <p><strong>Huéspedes:</strong> {reserva.num_huespedes}</p>
+                <p className="font-bold text-lg text-amber-600 mt-2">Total: ${reserva.total.toLocaleString('es-ES')}</p>
+                <p className="text-xs text-slate-400 pt-2 border-t border-slate-100 mt-2">
+                  Reservado el: {new Date(reserva.fecha_reserva).toLocaleString('es-ES')}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   );
 }
 
-// --- EL RESTO DE LOS COMPONENTES ---
-
+// -----------------------------------------------------------
+// GESTIÓN DE HABITACIONES (SIN CAMBIOS, PERO NECESARIO)
+// -----------------------------------------------------------
 const GestionHabitaciones = ({ 
   habitaciones, 
   onRecargar 
@@ -541,6 +670,9 @@ const GestionHabitaciones = ({
   )
 }
 
+// -----------------------------------------------------------
+// GESTIÓN DE OPERADORES (SIN CAMBIOS, PERO NECESARIO)
+// -----------------------------------------------------------
 const GestionOperadores = ({ 
   operadores, 
   onRecargar 
@@ -569,15 +701,10 @@ const GestionOperadores = ({
     }
   };
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // ------------------------------------------------------------------
-    // ADVERTENCIA DE BUG: Esto insertará una contraseña en texto plano.
-    // El operador creado no podrá iniciar sesión porque auth-login
-    // espera un hash. Esto requiere una Edge Function 'create-operator'.
-    // ------------------------------------------------------------------
+    // ADVERTENCIA DE BUG: Esto fallará en el login del operador.
     try {
       await supabase
         .from('usuarios')
@@ -603,9 +730,6 @@ const GestionOperadores = ({
         .delete()
         .eq('id', id)
       
-      // -----------------------------------------------------------
-      // AQUÍ ESTABA EL ERROR DE TIPEOM. CORREGIDO.
-      // -----------------------------------------------------------
       onRecargar()
 
     } catch (error) {
@@ -724,25 +848,71 @@ const GestionOperadores = ({
   )
 }
 
+// -----------------------------------------------------------
+// ESTADÍSTICAS (COMPONENTE 100% NUEVO CON GRÁFICOS)
+// -----------------------------------------------------------
 const Estadisticas = ({ 
   habitaciones, 
   reservas 
 }: { 
   habitaciones: Habitacion[]
-  reservas: Reserva[]
+  reservas: any[] // Usamos 'any' porque el tipo Reserva no está actualizado
 }) => {
+
+  // --- 1. Lógica para KPIs (Indicadores Clave) ---
   const ingresosCompletadas = reservas
     .filter(r => r.estado === 'completada')
     .reduce((sum, r) => sum + r.total, 0)
 
-  const ingresosPendientes = reservas
-    .filter(r => r.estado === 'activa')
-    .reduce((sum, r) => sum + r.total, 0)
+  const reservasActivas = reservas.filter(r => r.estado === 'activa').length
+  
+  const totalHabitaciones = habitaciones.length
+  
+  const habitacionesDisponibles = habitaciones.filter(h => h.estado === 'disponible').length
 
-  const tiposHabitaciones = habitaciones.reduce((acc: any, hab) => {
-    acc[hab.tipo] = (acc[hab.tipo] || 0) + 1
-    return acc
-  }, {})
+  // --- 2. Lógica para Gráfico de Ingresos por Mes ---
+  const getIngresosPorMes = () => {
+    const meses = [
+      "Ene", "Feb", "Mar", "Abr", "May", "Jun", 
+      "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"
+    ];
+    // Agrupamos los ingresos de reservas completadas por mes
+    const ingresos = reservas
+      .filter(r => r.estado === 'completada')
+      .reduce((acc, r) => {
+        const mes = new Date(r.fecha_reserva).getMonth(); // 0 = Enero, 11 = Diciembre
+        const nombreMes = meses[mes];
+        acc[nombreMes] = (acc[nombreMes] || 0) + r.total;
+        return acc;
+      }, {} as Record<string, number>);
+
+    // Lo convertimos al formato que espera Recharts
+    return meses.map(mes => ({
+      name: mes,
+      Ingresos: ingresos[mes] || 0,
+    }));
+  };
+  const dataIngresos = getIngresosPorMes();
+
+  // --- 3. Lógica para Gráfico de Popularidad (Reservas por Tipo) ---
+  const getReservasPorTipo = () => {
+    const tipos = reservas.reduce((acc, r) => {
+      const habitacion = habitaciones.find(h => h.id === r.habitacion_id);
+      if (habitacion) {
+        const tipo = habitacion.tipo;
+        acc[tipo] = (acc[tipo] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+    
+    // Lo convertimos al formato de Recharts
+    return Object.entries(tipos).map(([name, value]) => ({
+      name,
+      value,
+    }));
+  };
+  const dataTipos = getReservasPorTipo();
+  const COLORS = ['#FFBB28', '#FF8042', '#0088FE', '#00C49F']; // Colores para el gráfico de torta
 
   return (
     <div className="space-y-8">
@@ -753,29 +923,25 @@ const Estadisticas = ({
             <p className="text-sm text-slate-600">Total Habitaciones</p>
             <Home className="h-5 w-5 text-slate-400" />
           </div>
-          <p className="text-3xl font-bold text-slate-900">{habitaciones.length}</p>
+          <p className="text-3xl font-bold text-slate-900">{totalHabitaciones}</p>
         </div>
         <div className="bg-white rounded-lg p-6 shadow-sm border border-green-200 bg-green-50">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm text-green-700">Disponibles</p>
             <TrendingUp className="h-5 w-5 text-green-600" />
           </div>
-          <p className="text-3xl font-bold text-green-900">
-            {habitaciones.filter(h => h.estado === 'disponible').length}
-          </p>
+          <p className="text-3xl font-bold text-green-900">{habitacionesDisponibles}</p>
         </div>
         <div className="bg-white rounded-lg p-6 shadow-sm border border-amber-200 bg-amber-50">
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm text-amber-700">Reservas Activas</p>
             <Calendar className="h-5 w-5 text-amber-600" />
           </div>
-          <p className="text-3xl font-bold text-amber-900">
-            {reservas.filter(r => r.estado === 'activa').length}
-          </p>
+          <p className="text-3xl font-bold text-amber-900">{reservasActivas}</p>
         </div>
         <div className="bg-white rounded-lg p-6 shadow-sm border border-blue-200 bg-blue-50">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-blue-700">Ingresos Totales</p>
+            <p className="text-sm text-blue-700">Ingresos (Completados)</p>
             <DollarSign className="h-5 w-5 text-blue-600" />
           </div>
           <p className="text-2xl font-bold text-blue-900">
@@ -784,66 +950,49 @@ const Estadisticas = ({
         </div>
       </div>
 
-      {/* Tabla de Estadísticas */}
+      {/* Gráficos */}
       <div className="grid md:grid-cols-2 gap-6">
+        {/* Gráfico de Ingresos por Mes */}
         <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
-          <h3 className="text-lg font-bold text-slate-900 mb-4">Habitaciones por Tipo</h3>
-          <div className="space-y-3">
-            {Object.entries(tiposHabitaciones).map(([tipo, cantidad]) => (
-              <div key={tipo} className="flex justify-between items-center">
-                <span className="text-slate-700">{tipo}</span>
-                <span className="font-semibold text-amber-600">{cantidad as number}</span>
-              </div>
-            ))}
+          <h3 className="text-lg font-bold text-slate-900 mb-4">Ingresos por Mes (Completados)</h3>
+          <div style={{ width: '100%', height: 300 }}>
+            <ResponsiveContainer>
+              <LineChart data={dataIngresos} margin={{ top: 5, right: 20, left: -20, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
+                <XAxis dataKey="name" stroke="#64748b" />
+                <YAxis stroke="#64748b" />
+                <Tooltip formatter={(value: number) => `$${value.toLocaleString('es-ES')}`} />
+                <Legend />
+                <Line type="monotone" dataKey="Ingresos" stroke="#FF8042" strokeWidth={2} activeDot={{ r: 8 }} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
+        {/* Gráfico de Popularidad de Habitaciones */}
         <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
-          <h3 className="text-lg font-bold text-slate-900 mb-4">Resumen de Ingresos</h3>
-          <div className="space-y-4">
-            <div>
-              <p className="text-sm text-slate-600 mb-1">Ingresos Completados</p>
-              <p className="text-2xl font-bold text-green-600">
-                ${ingresosCompletadas.toLocaleString('es-ES')}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-slate-600 mb-1">Ingresos Pendientes</p>
-              <p className="text-2xl font-bold text-amber-600">
-                ${ingresosPendientes.toLocaleString('es-ES')}
-              </p>
-            </div>
-            <div className="pt-2 border-t border-slate-200">
-              <p className="text-sm text-slate-600 mb-1">Total</p>
-              <p className="text-2xl font-bold text-blue-600">
-                ${(ingresosCompletadas + ingresosPendientes).toLocaleString('es-ES')}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Estados de Reservas */}
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
-        <h3 className="text-lg font-bold text-slate-900 mb-4">Estado de Reservas</h3>
-        <div className="grid md:grid-cols-3 gap-4">
-          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-            <p className="text-sm text-green-700 mb-1">Activas</p>
-            <p className="text-3xl font-bold text-green-900">
-              {reservas.filter(r => r.estado === 'activa').length}
-            </p>
-          </div>
-          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-700 mb-1">Completadas</p>
-            <p className="text-3xl font-bold text-blue-900">
-              {reservas.filter(r => r.estado === 'completada').length}
-            </p>
-          </div>
-          <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-            <p className="text-sm text-red-700 mb-1">Canceladas</p>
-            <p className="text-3xl font-bold text-red-900">
-              {reservas.filter(r => r.estado === 'cancelada').length}
-            </p>
+          <h3 className="text-lg font-bold text-slate-900 mb-4">Popularidad de Habitaciones</h3>
+          <div style={{ width: '100%', height: 300 }}>
+            <ResponsiveContainer>
+              <PieChart>
+                <Pie
+                  data={dataTipos}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {dataTipos.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value: number) => `${value} reservas`} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
