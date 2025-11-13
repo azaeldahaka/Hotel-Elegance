@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-// --- CAMBIO: Añadimos 'TipoHabitacion' y 'Amenidad' ---
-import { Habitacion, Usuario, Reserva, TipoHabitacion, Amenidad } from '@/types' 
-import { Home, Users, BarChart3, Plus, Edit, Trash2, X, Save, TrendingUp, DollarSign, Calendar, Filter, AlertCircle, RefreshCw, XCircle, CheckCircle } from 'lucide-react'
+import { Habitacion, Usuario, Reserva, TipoHabitacion, Amenidad, Servicio } from '@/types'
+import { Home, Users, BarChart3, Plus, Edit, Trash2, X, Save, TrendingUp, DollarSign, Calendar, Filter, AlertCircle, RefreshCw, XCircle, CheckCircle, Coffee } from 'lucide-react'
 import { 
   ResponsiveContainer, 
   LineChart, 
@@ -20,13 +19,15 @@ import {
 
 export const AdminDashboard = () => {
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState<'habitaciones' | 'operadores' | 'estadisticas' | 'reservas'>('habitaciones')
+  // --- CAMBIO: Añadimos 'servicios' a las tabs ---
+  const [activeTab, setActiveTab] = useState<'habitaciones' | 'servicios' | 'operadores' | 'estadisticas' | 'reservas'>('habitaciones')
   const [habitaciones, setHabitaciones] = useState<Habitacion[]>([])
   const [operadores, setOperadores] = useState<Usuario[]>([])
   const [reservas, setReservas] = useState<Reserva[]>([])
   const [clientes, setClientes] = useState<Usuario[]>([])
+  // --- CAMBIO: Estado para servicios ---
+  const [servicios, setServicios] = useState<Servicio[]>([])
   
-  // --- ¡NUEVO! Estados para las nuevas listas ---
   const [tiposHabitacion, setTiposHabitacion] = useState<TipoHabitacion[]>([])
   const [amenidades, setAmenidades] = useState<Amenidad[]>([])
   
@@ -39,38 +40,25 @@ export const AdminDashboard = () => {
   const cargarDatos = async () => {
     setLoading(true);
     try {
-      // 1. Creamos todas las promesas de consulta
       const habPromise = supabase.from('habitaciones').select('*').order('numero')
       const opPromise = supabase.from('usuarios').select('*').eq('rol', 'operador').order('nombre')
       const cliPromise = supabase.from('usuarios').select('*').eq('rol', 'usuario').order('nombre')
       const resPromise = supabase.from('reservas').select('*').order('fecha_reserva', { ascending: false }) 
+      // --- CAMBIO: Cargamos servicios ---
+      const servPromise = supabase.from('servicios').select('*').order('nombre')
       
-      // --- ¡NUEVO! Añadimos las nuevas tablas a la carga ---
       const tiposPromise = supabase.from('tipos_habitacion').select('*').order('nombre')
       const amenidadesPromise = supabase.from('amenidades').select('*').order('nombre')
 
-      // 2. Las ejecutamos todas en paralelo
-      const [
-        habResult, 
-        opResult, 
-        resResult, 
-        cliResult, 
-        tiposResult, 
-        amenidadesResult
-      ] = await Promise.all([
-        habPromise,
-        opPromise,
-        resPromise,
-        cliPromise,
-        tiposPromise,
-        amenidadesPromise
+      const [habResult, opResult, resResult, cliResult, servResult, tiposResult, amenidadesResult] = await Promise.all([
+        habPromise, opPromise, resPromise, cliPromise, servPromise, tiposPromise, amenidadesPromise
       ]);
       
-      // 3. Actualizamos el estado
       setHabitaciones(habResult.data || [])
       setOperadores(opResult.data || [])
       setReservas(resResult.data || [])
       setClientes(cliResult.data || [])
+      setServicios(servResult.data || [])
       setTiposHabitacion(tiposResult.data || [])
       setAmenidades(amenidadesResult.data || [])
 
@@ -101,50 +89,23 @@ export const AdminDashboard = () => {
 
         {/* Tabs */}
         <div className="flex flex-wrap gap-4 mb-8 border-b border-slate-200">
-          <button
-            onClick={() => setActiveTab('habitaciones')}
-            className={`px-6 py-3 font-medium transition-colors flex items-center gap-2 ${
-              activeTab === 'habitaciones'
-                ? 'text-amber-600 border-b-2 border-amber-600'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Home className="h-5 w-5" />
-            Habitaciones ({habitaciones.length})
+          <button onClick={() => setActiveTab('habitaciones')} className={`px-4 py-3 font-medium flex items-center gap-2 ${activeTab === 'habitaciones' ? 'text-amber-600 border-b-2 border-amber-600' : 'text-slate-600'}`}>
+            <Home className="h-5 w-5" /> Habitaciones
           </button>
           
-          <button
-            onClick={() => setActiveTab('reservas')}
-            className={`px-6 py-3 font-medium transition-colors flex items-center gap-2 ${
-              activeTab === 'reservas'
-                ? 'text-amber-600 border-b-2 border-amber-600'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Calendar className="h-5 w-5" />
-            Reservas ({reservas.length})
+          {/* --- CAMBIO: Tab Servicios --- */}
+          <button onClick={() => setActiveTab('servicios')} className={`px-4 py-3 font-medium flex items-center gap-2 ${activeTab === 'servicios' ? 'text-amber-600 border-b-2 border-amber-600' : 'text-slate-600'}`}>
+            <Coffee className="h-5 w-5" /> Servicios
           </button>
-          <button
-            onClick={() => setActiveTab('operadores')}
-            className={`px-6 py-3 font-medium transition-colors flex items-center gap-2 ${
-              activeTab === 'operadores'
-                ? 'text-amber-600 border-b-2 border-amber-600'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <Users className="h-5 w-5" />
-            Operadores ({operadores.length})
+
+          <button onClick={() => setActiveTab('reservas')} className={`px-4 py-3 font-medium flex items-center gap-2 ${activeTab === 'reservas' ? 'text-amber-600 border-b-2 border-amber-600' : 'text-slate-600'}`}>
+            <Calendar className="h-5 w-5" /> Reservas
           </button>
-          <button
-            onClick={() => setActiveTab('estadisticas')}
-            className={`px-6 py-3 font-medium transition-colors flex items-center gap-2 ${
-              activeTab === 'estadisticas'
-                ? 'text-amber-600 border-b-2 border-amber-600'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            <BarChart3 className="h-5 w-5" />
-            Estadísticas
+          <button onClick={() => setActiveTab('operadores')} className={`px-4 py-3 font-medium flex items-center gap-2 ${activeTab === 'operadores' ? 'text-amber-600 border-b-2 border-amber-600' : 'text-slate-600'}`}>
+            <Users className="h-5 w-5" /> Operadores
+          </button>
+          <button onClick={() => setActiveTab('estadisticas')} className={`px-4 py-3 font-medium flex items-center gap-2 ${activeTab === 'estadisticas' ? 'text-amber-600 border-b-2 border-amber-600' : 'text-slate-600'}`}>
+            <BarChart3 className="h-5 w-5" /> Estadísticas
           </button>
         </div>
 
@@ -152,9 +113,15 @@ export const AdminDashboard = () => {
         {activeTab === 'habitaciones' && (
           <GestionHabitaciones 
             habitaciones={habitaciones} 
-            // --- ¡NUEVO! Pasamos las listas al componente ---
             tipos={tiposHabitacion}
-            amenidades={amenidades}
+            amenidadesDisponibles={amenidades}
+            onRecargar={cargarDatos} 
+          />
+        )}
+        {/* --- CAMBIO: Renderizamos GestionServicios --- */}
+        {activeTab === 'servicios' && (
+          <GestionServicios 
+            servicios={servicios} 
             onRecargar={cargarDatos} 
           />
         )}
@@ -176,7 +143,6 @@ export const AdminDashboard = () => {
     </div>
   )
 }
-
 // -----------------------------------------------------------
 // GESTIÓN DE RESERVAS
 // -----------------------------------------------------------
@@ -419,135 +385,155 @@ const GestionReservas = ({
 }
 
 // -----------------------------------------------------------
-// GESTIÓN DE HABITACIONES (MODAL ACTUALIZADO)
+// GESTIÓN DE SERVICIOS (¡NUEVO COMPONENTE!)
+// -----------------------------------------------------------
+const GestionServicios = ({ servicios, onRecargar }: { servicios: Servicio[], onRecargar: () => void }) => {
+  const [showModal, setShowModal] = useState(false)
+  const [editando, setEditando] = useState<Servicio | null>(null)
+  const [formData, setFormData] = useState({ nombre: '', descripcion: '', precio: '', imagen_url: '' })
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const dataToSave = {
+      nombre: formData.nombre,
+      descripcion: formData.descripcion,
+      precio: parseFloat(formData.precio),
+      imagen_url: formData.imagen_url,
+      disponible: true
+    }
+    try {
+      if (editando) {
+        await supabase.from('servicios').update(dataToSave).eq('id', editando.id)
+      } else {
+        await supabase.from('servicios').insert([dataToSave])
+      }
+      setFormData({ nombre: '', descripcion: '', precio: '', imagen_url: '' })
+      setEditando(null)
+      setShowModal(false)
+      onRecargar()
+    } catch (error) { console.error(error) }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Borrar servicio?')) return
+    await supabase.from('servicios').delete().eq('id', id)
+    onRecargar()
+  }
+
+  return (
+    <div>
+      <div className="mb-6">
+        <button onClick={() => {setEditando(null); setFormData({ nombre: '', descripcion: '', precio: '', imagen_url: '' }); setShowModal(true)}} className="px-6 py-3 bg-amber-600 text-white rounded-lg flex items-center gap-2 shadow-lg">
+          <Plus className="h-5 w-5" /> Nuevo Servicio
+        </button>
+      </div>
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {servicios.map((s) => (
+          <div key={s.id} className="bg-white p-6 rounded-lg border shadow-sm">
+            <h3 className="font-bold text-lg">{s.nombre}</h3>
+            <p className="text-sm text-slate-600 mb-2">{s.descripcion}</p>
+            <p className="font-bold text-amber-600 mb-4">${s.precio.toLocaleString('es-ES')}</p>
+            <div className="flex gap-2">
+              <button onClick={() => { setEditando(s); setFormData({ nombre: s.nombre, descripcion: s.descripcion, precio: s.precio.toString(), imagen_url: s.imagen_url || '' }); setShowModal(true) }} className="flex-1 bg-blue-100 text-blue-700 py-2 rounded">Editar</button>
+              <button onClick={() => handleDelete(s.id)} className="flex-1 bg-red-100 text-red-700 py-2 rounded">Eliminar</button>
+            </div>
+          </div>
+        ))}
+      </div>
+      {showModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white p-6 rounded-xl max-w-md w-full">
+            <h2 className="text-2xl font-bold mb-4">{editando ? 'Editar' : 'Nuevo'} Servicio</h2>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <input placeholder="Nombre" value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} className="w-full border p-2 rounded" required />
+              <textarea placeholder="Descripción" value={formData.descripcion} onChange={e => setFormData({...formData, descripcion: e.target.value})} className="w-full border p-2 rounded" required />
+              <input type="number" placeholder="Precio" value={formData.precio} onChange={e => setFormData({...formData, precio: e.target.value})} className="w-full border p-2 rounded" required />
+              <div className="flex gap-2"><button type="submit" className="flex-1 bg-amber-600 text-white py-2 rounded">Guardar</button><button type="button" onClick={() => setShowModal(false)} className="flex-1 bg-slate-200 py-2 rounded">Cancelar</button></div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+
+// -----------------------------------------------------------
+// GESTIÓN DE HABITACIONES (CON CREACIÓN DE AMENIDADES)
 // -----------------------------------------------------------
 const GestionHabitaciones = ({ 
   habitaciones,
-  tipos,         // <--- ¡NUEVO!
-  amenidades,    // <--- ¡NUEVO!
+  tipos,
+  amenidadesDisponibles,
   onRecargar 
 }: { 
   habitaciones: Habitacion[]
   tipos: TipoHabitacion[]
-  amenidades: Amenidad[]
+  amenidadesDisponibles: Amenidad[]
   onRecargar: () => void 
 }) => {
   const [showModal, setShowModal] = useState(false)
   const [editando, setEditando] = useState<Habitacion | null>(null)
+  const [nuevaAmenidad, setNuevaAmenidad] = useState('') // --- NUEVO ---
   
-  // --- Estado inicial del formulario (vacío) ---
-  const estadoInicialForm = {
-    numero: '',
-    tipo: tipos.length > 0 ? tipos[0].nombre : '', // Valor por defecto
-    precio_noche: '',
-    capacidad: '',
-    amenidades: [] as string[], // Ahora es un array de strings
-    descripcion: '',
-    estado: 'disponible'
-  }
-  
-  const [formData, setFormData] = useState(estadoInicialForm)
+  const [formData, setFormData] = useState({
+    numero: '', tipo: tipos.length > 0 ? tipos[0].nombre : '', precio_noche: '', capacidad: '', amenidades: [] as string[], descripcion: '', estado: 'disponible'
+  })
 
   const resetForm = () => {
-    setFormData(estadoInicialForm)
+    setFormData({ numero: '', tipo: tipos.length > 0 ? tipos[0].nombre : '', precio_noche: '', capacidad: '', amenidades: [], descripcion: '', estado: 'disponible' })
     setEditando(null)
     setShowModal(false)
   }
 
   const handleEdit = (hab: Habitacion) => {
     setEditando(hab)
-    setFormData({
-      numero: hab.numero,
-      tipo: hab.tipo,
-      precio_noche: hab.precio_noche?.toString() || '',
-      capacidad: hab.capacidad?.toString() || '',
-      amenidades: hab.amenidades || [], // Usamos el array de amenidades
-      descripcion: hab.descripcion || '',
-      estado: hab.estado
-    })
+    setFormData({ numero: hab.numero, tipo: hab.tipo, precio_noche: hab.precio_noche?.toString() || '', capacidad: hab.capacidad?.toString() || '', amenidades: hab.amenidades || [], descripcion: hab.descripcion || '', estado: hab.estado })
     setShowModal(true)
   }
-  
-  // --- ¡NUEVO! Handler para los checkboxes ---
-  const handleAmenidadesChange = (amenidadNombre: string) => {
-    setFormData(prev => {
-      const yaExiste = prev.amenidades.includes(amenidadNombre);
-      if (yaExiste) {
-        // Si ya está, la filtramos (la saca)
-        return {
-          ...prev,
-          amenidades: prev.amenidades.filter(a => a !== amenidadNombre)
-        }
-      } else {
-        // Si no está, la añadimos
-        return {
-          ...prev,
-          amenidades: [...prev.amenidades, amenidadNombre]
-        }
-      }
-    });
-  };
+
+  const handleAmenidadChange = (nombreAmenidad: string) => {
+    setFormData(prev => ({
+      ...prev,
+      amenidades: prev.amenidades.includes(nombreAmenidad) 
+        ? prev.amenidades.filter(a => a !== nombreAmenidad) 
+        : [...prev.amenidades, nombreAmenidad]
+    }))
+  }
+
+  // --- ¡NUEVO! FUNCIÓN PARA CREAR AMENIDAD ---
+  const handleCrearAmenidad = async () => {
+    if (!nuevaAmenidad.trim()) return;
+    try {
+      await supabase.from('amenidades').insert([{ nombre: nuevaAmenidad.trim() }]);
+      setNuevaAmenidad('');
+      onRecargar(); // Recarga para que aparezca en la lista
+    } catch (error) {
+      console.error('Error creando amenidad:', error);
+      alert('Error: Quizás esa amenidad ya existe.');
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    // El 'dataToSave' ahora usa el array de amenidades
-    const dataToSave = {
-      numero: formData.numero,
-      tipo: formData.tipo,
-      precio_noche: parseFloat(formData.precio_noche),
-      capacidad: parseInt(formData.capacidad),
-      amenidades: formData.amenidades, // Ya es un array
-      descripcion: formData.descripcion,
-      estado: formData.estado
-    }
-
+    const dataToSave = { numero: formData.numero, tipo: formData.tipo, precio_noche: parseFloat(formData.precio_noche), capacidad: parseInt(formData.capacidad), amenidades: formData.amenidades, descripcion: formData.descripcion, estado: formData.estado }
     try {
-      if (editando) {
-        await supabase
-          .from('habitaciones')
-          .update(dataToSave)
-          .eq('id', editando.id)
-      } else {
-        await supabase
-          .from('habitaciones')
-          .insert([dataToSave])
-      }
-      
-      resetForm()
-      onRecargar()
-    } catch (error) {
-      console.error('Error guardando habitación:', error)
-    }
+      if (editando) await supabase.from('habitaciones').update(dataToSave).eq('id', editando.id)
+      else await supabase.from('habitaciones').insert([dataToSave])
+      resetForm(); onRecargar();
+    } catch (error) { console.error(error) }
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar esta habitación?')) return
-    
-    try {
-      await supabase
-        .from('habitaciones')
-        .delete()
-        .eq('id', id)
-      
-      onRecargar()
-    } catch (error) {
-      console.error('Error eliminando habitación:', error)
-    }
+    if (!confirm('¿Borrar?')) return
+    try { await supabase.from('habitaciones').delete().eq('id', id); onRecargar(); } catch (e) { console.error(e) }
   }
 
   return (
     <div>
       <div className="mb-6">
-        <button
-          onClick={() => {
-            resetForm(); // Resetea el form al abrir
-            setShowModal(true);
-          }}
-          className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center gap-2 shadow-lg"
-        >
-          <Plus className="h-5 w-5" />
-          Nueva Habitación
+        <button onClick={() => { resetForm(); setShowModal(true); }} className="px-6 py-3 bg-amber-600 text-white rounded-lg flex items-center gap-2 shadow-lg">
+          <Plus className="h-5 w-5" /> Nueva Habitación
         </button>
       </div>
 
@@ -555,128 +541,62 @@ const GestionHabitaciones = ({
         {habitaciones.map((hab) => (
           <div key={hab.id} className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
             <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="font-bold text-lg">Habitación {hab.numero}</h3>
-                <p className="text-sm text-slate-600">{hab.tipo}</p>
-              </div>
-              <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                hab.estado === 'disponible' ? 'bg-green-100 text-green-700' :
-                hab.estado === 'ocupada' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
-              }`}>
-                {hab.estado}
-              </span>
+              <div><h3 className="font-bold text-lg">Habitación {hab.numero}</h3><p className="text-sm text-slate-600">{hab.tipo}</p></div>
+              <span className={`px-2 py-1 rounded text-xs ${hab.estado === 'disponible' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{hab.estado}</span>
             </div>
-            <div className="mb-4 space-y-1 text-sm text-slate-600">
-              <p>Capacidad: {hab.capacidad} personas</p>
-              <p className="font-semibold text-amber-600">
-                ${hab.precio_noche?.toLocaleString('es-ES')} / noche
-              </p>
+            <p className="text-amber-600 font-bold">${hab.precio_noche?.toLocaleString('es-ES')} / noche</p>
+            <div className="flex flex-wrap gap-1 mt-2 mb-4">
+              {hab.amenidades?.slice(0, 3).map((am, i) => <span key={i} className="text-xs bg-slate-100 px-2 py-1 rounded">{am}</span>)}
             </div>
             <div className="flex gap-2">
-              <button
-                onClick={() => handleEdit(hab)}
-                className="flex-1 px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium flex items-center justify-center gap-1"
-              >
-                <Edit className="h-4 w-4" />
-                Editar
-              </button>
-              <button
-                onClick={() => handleDelete(hab.id)}
-                className="flex-1 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium flex items-center justify-center gap-1"
-              >
-                <Trash2 className="h-4 w-4" />
-                Eliminar
-              </button>
+              <button onClick={() => handleEdit(hab)} className="flex-1 bg-blue-100 text-blue-700 py-2 rounded"><Edit className="h-4 w-4 mx-auto"/></button>
+              <button onClick={() => handleDelete(hab.id)} className="flex-1 bg-red-100 text-red-700 py-2 rounded"><Trash2 className="h-4 w-4 mx-auto"/></button>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Modal de Habitación (ACTUALIZADO) */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">
-                {editando ? 'Editar Habitación' : 'Nueva Habitación'}
-              </h2>
-              <button onClick={resetForm} className="text-slate-400 hover:text-slate-600">
-                <X className="h-6 w-6" />
-              </button>
+              <h2 className="text-2xl font-bold">{editando ? 'Editar' : 'Nueva'} Habitación</h2>
+              <button onClick={resetForm} className="text-slate-400 hover:text-slate-600"><X className="h-6 w-6" /></button>
             </div>
-
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Número</label>
-                  <input type="text" value={formData.numero} onChange={(e) => setFormData({ ...formData, numero: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" required />
-                </div>
-                <div>
-                  {/* --- CAMBIO: de input a select --- */}
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Tipo</label>
-                  <select
-                    value={formData.tipo}
-                    onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-                    required
-                  >
-                    {tipos.map(t => (
-                      <option key={t.id} value={t.nombre}>{t.nombre}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Precio por Noche</label>
-                  <input type="number" value={formData.precio_noche} onChange={(e) => setFormData({ ...formData, precio_noche: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" required />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Capacidad</label>
-                  <input type="number" value={formData.capacidad} onChange={(e) => setFormData({ ...formData, capacidad: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" required />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">Estado</label>
-                  <select value={formData.estado} onChange={(e) => setFormData({ ...formData, estado: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none">
-                    <option value="disponible">Disponible</option>
-                    <option value="ocupada">Ocupada</option>
-                    <option value="mantenimiento">Mantenimiento</option>
-                  </select>
-                </div>
+                <div><label className="text-sm font-medium">Número</label><input value={formData.numero} onChange={e => setFormData({...formData, numero: e.target.value})} className="w-full border p-2 rounded" required /></div>
+                <div><label className="text-sm font-medium">Tipo</label><select value={formData.tipo} onChange={e => setFormData({...formData, tipo: e.target.value})} className="w-full border p-2 rounded" required><option value="">Seleccionar...</option>{tipos.map(t => <option key={t.id} value={t.nombre}>{t.nombre}</option>)}</select></div>
+                <div><label className="text-sm font-medium">Precio</label><input type="number" value={formData.precio_noche} onChange={e => setFormData({...formData, precio_noche: e.target.value})} className="w-full border p-2 rounded" required /></div>
+                <div><label className="text-sm font-medium">Capacidad</label><input type="number" value={formData.capacidad} onChange={e => setFormData({...formData, capacidad: e.target.value})} className="w-full border p-2 rounded" required /></div>
+                <div><label className="text-sm font-medium">Estado</label><select value={formData.estado} onChange={e => setFormData({...formData, estado: e.target.value})} className="w-full border p-2 rounded"><option value="disponible">Disponible</option><option value="ocupada">Ocupada</option><option value="mantenimiento">Mantenimiento</option></select></div>
               </div>
 
               <div>
-                {/* --- CAMBIO: de input a checkboxes --- */}
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  Amenidades
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 p-4 border border-slate-300 rounded-lg">
-                  {amenidades.map(a => (
-                    <label key={a.id} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={formData.amenidades.includes(a.nombre)}
-                        onChange={() => handleAmenidadesChange(a.nombre)}
-                        className="rounded text-amber-600 focus:ring-amber-500"
-                      />
-                      <span className="text-sm text-slate-700">{a.nombre}</span>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Amenidades</label>
+                {/* --- INPUT PARA CREAR AMENIDAD --- */}
+                <div className="flex gap-2 mb-2">
+                  <input 
+                    placeholder="Agregar nueva (ej: Netflix)" 
+                    value={nuevaAmenidad} 
+                    onChange={e => setNuevaAmenidad(e.target.value)}
+                    className="flex-1 border p-2 rounded text-sm"
+                  />
+                  <button type="button" onClick={handleCrearAmenidad} className="bg-green-600 text-white px-3 rounded hover:bg-green-700">+</button>
+                </div>
+                
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 border rounded-lg bg-slate-50 max-h-40 overflow-y-auto">
+                  {amenidadesDisponibles.map(amenidad => (
+                    <label key={amenidad.id} className="flex items-center space-x-2 cursor-pointer">
+                      <input type="checkbox" checked={formData.amenidades.includes(amenidad.nombre)} onChange={() => handleAmenidadChange(amenidad.nombre)} className="rounded text-amber-600 h-4 w-4" />
+                      <span className="text-sm text-slate-700">{amenidad.nombre}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Descripción</label>
-                <textarea value={formData.descripcion} onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" rows={3} />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button type="submit" className="flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center justify-center gap-2">
-                  <Save className="h-5 w-5" />
-                  Guardar
-                </button>
-                <button type="button" onClick={resetForm} className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium">
-                  Cancelar
-                </button>
-              </div>
+              <div><label className="text-sm font-medium">Descripción</label><textarea value={formData.descripcion} onChange={e => setFormData({...formData, descripcion: e.target.value})} className="w-full border p-2 rounded" rows={3} /></div>
+              <div className="flex gap-3 pt-4"><button type="submit" className="flex-1 bg-amber-600 text-white py-2 rounded">Guardar</button><button type="button" onClick={resetForm} className="flex-1 bg-slate-200 py-2 rounded">Cancelar</button></div>
             </form>
           </div>
         </div>
