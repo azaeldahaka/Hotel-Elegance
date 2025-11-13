@@ -3,9 +3,10 @@ import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Mail, MessageSquare, Trash2, Clock, CheckCircle, XCircle, ArrowLeft, Edit, AlertCircle, Send, RefreshCw } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { Habitacion, Reserva } from '@/types'
+// Importamos los tipos que necesitamos
+import { Habitacion, Reserva, Usuario } from '@/types'
 
-// Definimos el tipo aquí
+// Definimos el tipo Consulta
 type Consulta = {
   id: string
   asunto: string
@@ -18,18 +19,16 @@ type Consulta = {
 }
 
 export const Consultas = () => {
-  const { user } = useAuth()
+  const { user } = useAuth() // <-- YA TENEMOS AL USUARIO AQUÍ
   const navigate = useNavigate()
   const [consultas, setConsultas] = useState<Consulta[]>([])
   const [loading, setLoading] = useState(true)
   
-  // Estados para el modal de edición de solicitud
   const [showModal, setShowModal] = useState(false)
   const [consultaAEditar, setConsultaAEditar] = useState<Consulta | null>(null)
   const [reservaRelacionada, setReservaRelacionada] = useState<Reserva | null>(null)
   const [habitaciones, setHabitaciones] = useState<Habitacion[]>([])
 
-  // Estados para nueva consulta simple
   const [nuevoAsunto, setNuevoAsunto] = useState('')
   const [nuevoMensaje, setNuevoMensaje] = useState('')
   const [showForm, setShowForm] = useState(false)
@@ -43,14 +42,12 @@ export const Consultas = () => {
   const cargarDatos = async () => {
     setLoading(true)
     try {
-      // 1. Cargar Consultas
       const consultasPromise = supabase
         .from('consultas')
         .select('*')
         .eq('usuario_id', user?.id)
         .order('fecha_consulta', { ascending: false })
 
-      // 2. Cargar Habitaciones (necesarias para el modal de edición)
       const habitacionesPromise = supabase
         .from('habitaciones')
         .select('*')
@@ -81,30 +78,24 @@ export const Consultas = () => {
     }
   }
 
- // --- LÓGICA DE BÚSQUEDA CORREGIDA (CLIENT SIDE FILTER) ---
+  // --- LÓGICA DE BÚSQUEDA CORREGIDA (CLIENT SIDE FILTER) ---
   const handleEditarClick = async (consulta: Consulta) => {
     // 1. Extraemos el ID parcial del asunto
     const match = consulta.asunto.match(/#([a-zA-Z0-9-]{8,})/);
     
     if (match && match[1]) {
       const partialId = match[1];
-      console.log("Buscando reserva que empiece con:", partialId);
 
       try {
-        // 2. CAMBIO: En lugar de filtrar en la BDD con ilike (que falla con UUIDs),
-        // traemos todas las reservas DEL USUARIO ACTUAL.
+        // 2. Traemos todas las reservas DEL USUARIO ACTUAL
         const { data, error } = await supabase
           .from('reservas')
           .select('*')
-          .eq('usuario_id', user?.id); // Solo mis reservas
+          .eq('usuario_id', user?.id);
 
-        if (error) {
-          console.error("Error de Supabase:", error);
-          throw error;
-        }
+        if (error) throw error;
 
-        // 3. CAMBIO: Hacemos el filtrado aquí en JavaScript
-        // Buscamos la reserva cuyo ID comience con el ID parcial
+        // 3. Hacemos el filtrado aquí en JavaScript
         const reservaEncontrada = data?.find(r => r.id.startsWith(partialId));
 
         if (reservaEncontrada) {
@@ -112,7 +103,6 @@ export const Consultas = () => {
           setConsultaAEditar(consulta);
           setShowModal(true);
         } else {
-          console.warn("No se encontró coincidencia local para:", partialId);
           alert(`No se encontró la reserva activa asociada a esta solicitud (#${partialId}).`);
         }
       } catch (error) {
@@ -143,12 +133,11 @@ export const Consultas = () => {
     }
   }
 
-  // Callback cuando se guarda la edición
   const onEdicionGuardada = () => {
     setShowModal(false);
     setConsultaAEditar(null);
     setReservaRelacionada(null);
-    cargarDatos(); // Recargar para ver el mensaje nuevo
+    cargarDatos();
   }
 
   const getEstadoBadge = (estado: string) => {
@@ -177,34 +166,17 @@ export const Consultas = () => {
           </button>
         </div>
 
-        {/* Formulario Nueva Consulta */}
         {showForm && (
           <div className="bg-white p-6 rounded-xl shadow-md mb-8 animate-in slide-in-from-top-4">
             <h2 className="text-xl font-semibold mb-4">Escribir Consulta</h2>
             <form onSubmit={handleEnviarConsulta} className="space-y-4">
-              <input 
-                type="text" 
-                placeholder="Asunto" 
-                className="w-full p-3 border rounded-lg"
-                value={nuevoAsunto}
-                onChange={e => setNuevoAsunto(e.target.value)}
-                required
-              />
-              <textarea 
-                placeholder="Escribe tu mensaje aquí..." 
-                className="w-full p-3 border rounded-lg h-32"
-                value={nuevoMensaje}
-                onChange={e => setNuevoMensaje(e.target.value)}
-                required
-              />
-              <button type="submit" className="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700">
-                Enviar
-              </button>
+              <input type="text" placeholder="Asunto" className="w-full p-3 border rounded-lg" value={nuevoAsunto} onChange={e => setNuevoAsunto(e.target.value)} required />
+              <textarea placeholder="Escribe tu mensaje aquí..." className="w-full p-3 border rounded-lg h-32" value={nuevoMensaje} onChange={e => setNuevoMensaje(e.target.value)} required />
+              <button type="submit" className="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700">Enviar</button>
             </form>
           </div>
         )}
 
-        {/* Lista de Consultas */}
         <div className="space-y-4">
           {loading ? (
             <p className="text-center text-slate-500">Cargando...</p>
@@ -228,7 +200,7 @@ export const Consultas = () => {
                     
                     {consulta.estado === 'pendiente' && (
                       <>
-                        {/* Botón EDITAR (Aparece si el asunto tiene un ID de reserva) */}
+                        {/* Botón EDITAR */}
                         {consulta.asunto.toLowerCase().includes('reserva #') && (
                           <button 
                             onClick={() => handleEditarClick(consulta)}
@@ -237,7 +209,7 @@ export const Consultas = () => {
                           >
                             <Edit className="h-4 w-4" />
                           </button>
-                         )}
+                        )}
                         
                         {/* Botón ELIMINAR */}
                         <button 
@@ -280,6 +252,7 @@ export const Consultas = () => {
           consulta={consultaAEditar}
           reserva={reservaRelacionada}
           habitaciones={habitaciones}
+          user={user} // <-- ¡AQUÍ ESTÁ EL CAMBIO!
           onClose={() => setShowModal(false)}
           onSave={onEdicionGuardada}
         />
@@ -289,17 +262,18 @@ export const Consultas = () => {
 }
 
 // --- COMPONENTE MODAL DE EDICIÓN DE SOLICITUD ---
-// Es una adaptación del Modal de UsuarioDashboard, pero actualiza la consulta
 const ModalEditarSolicitud = ({
   consulta,
   reserva,
   habitaciones,
+  user, // <-- ¡AQUÍ ESTÁ EL CAMBIO!
   onClose,
   onSave,
 }: {
   consulta: Consulta
   reserva: Reserva
   habitaciones: Habitacion[]
+  user: Usuario | null // <-- ¡AQUÍ ESTÁ EL CAMBIO!
   onClose: () => void
   onSave: () => void
 }) => {
@@ -315,6 +289,11 @@ const ModalEditarSolicitud = ({
   const [error, setError] = useState('');
   const [nuevoTotal, setNuevoTotal] = useState(reserva.total);
   const [diferencia, setDiferencia] = useState(0);
+
+  // --- ¡AQUÍ ESTÁ EL CAMBIO! ---
+  const tituloModal = user 
+    ? `Editar Solicitud de ${user.nombre}`
+    : 'Modificar Solicitud';
 
   const tiposDisponibles = [...new Set(habitaciones.map(h => h.tipo))];
   const habitacionesFiltradas = habitaciones.filter(h => h.tipo === selectedTipo);
@@ -361,7 +340,6 @@ const ModalEditarSolicitud = ({
       const salida = new Date(formData.fecha_salida);
       if (salida <= entrada) throw new Error("La salida debe ser posterior a la entrada");
 
-      // Validar Disponibilidad
       const { data, error: funcError } = await supabase.functions.invoke('check-room-availability', {
         body: {
           habitacion_id: formData.habitacion_id,
@@ -377,7 +355,6 @@ const ModalEditarSolicitud = ({
         throw new Error(`Lo sentimos, no hay disponibilidad para ${selectedTipo} en esas fechas.`);
       }
 
-      // Generar el NUEVO mensaje actualizado
       const habOriginal = habitaciones.find(h => h.id === reserva.habitacion_id);
       const habNueva = habitaciones.find(h => h.id === formData.habitacion_id);
       
@@ -398,10 +375,8 @@ Diferencia a pagar: $${diferencia}
 Por favor, confirmen si puedo proceder con el cambio.
       `.trim();
 
-      // ACTUALIZAR la consulta existente
       await supabase.from('consultas').update({
         mensaje: mensaje,
-        // Opcional: Podríamos actualizar la fecha de consulta para que suba arriba
         fecha_consulta: new Date().toISOString()
       }).eq('id', consulta.id);
 
@@ -417,7 +392,8 @@ Por favor, confirmen si puedo proceder con el cambio.
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl p-6 max-w-xl w-full">
-        <h2 className="text-xl font-bold mb-6">Modificar Solicitud</h2>
+        {/* --- ¡AQUÍ ESTÁ EL CAMBIO! --- */}
+        <h2 className="text-xl font-bold mb-6">{tituloModal}</h2>
         
         {error && (
           <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg flex items-center gap-2">
