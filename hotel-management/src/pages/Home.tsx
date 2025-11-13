@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Sparkles, Bed, Utensils, Dumbbell, Waves, Calendar, Phone } from 'lucide-react'
+import { Sparkles, Bed, Utensils, Dumbbell, Waves, Calendar, Phone, MapPin, Mail } from 'lucide-react'
 
 export const Home = () => {
   return (
@@ -107,6 +107,69 @@ export const Home = () => {
               title="Suite de Lujo"
               price="$120,000"
             />
+          </div>
+        </div>
+      </section>
+
+      {/* --- NUEVA SECCIÓN: UBICACIÓN Y CONTACTO --- */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            {/* Información de Contacto */}
+            <div>
+              <h2 className="text-4xl font-serif font-bold text-slate-900 mb-6">
+                Ubicación y Contacto
+              </h2>
+              <p className="text-lg text-slate-600 mb-8">
+                Estamos ubicados en el corazón de la ciudad, con fácil acceso a los principales puntos turísticos y centros de negocios.
+              </p>
+              
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-amber-100 rounded-lg text-amber-600">
+                    <MapPin className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-900 text-lg">Dirección</h3>
+                    <p className="text-slate-600">Av. San Martín 1234, Salta, Argentina</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-amber-100 rounded-lg text-amber-600">
+                    <Phone className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-900 text-lg">Teléfono</h3>
+                    <p className="text-slate-600">+54 387 123 4567</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-amber-100 rounded-lg text-amber-600">
+                    <Mail className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-slate-900 text-lg">Email</h3>
+                    <p className="text-slate-600">reservas@hotelelegance.com</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Mapa de Google */}
+            <div className="h-[400px] bg-slate-200 rounded-2xl overflow-hidden shadow-lg border border-slate-200">
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d28977.72772874723!2d-65.43656204999999!3d-24.7859!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x941bc3a35151b7f9%3A0xa55889a830785a!2sSalta%2C%20Provincia%20de%20Salta!5e0!3m2!1ses-419!2sar!4v1730315000000!5m2!1ses-419!2sar" 
+                width="100%" 
+                height="100%" 
+                style={{ border: 0 }} 
+                allowFullScreen={true} 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Mapa del Hotel"
+              ></iframe>
+            </div>
           </div>
         </div>
       </section>

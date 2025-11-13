@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { Habitacion, Usuario, Reserva } from '@/types'
-// --- CAMBIO: Añadimos XCircle para el nuevo botón ---
-import { Home, Users, BarChart3, Plus, Edit, Trash2, X, Save, TrendingUp, DollarSign, Calendar, Filter, AlertCircle, RefreshCw, XCircle } from 'lucide-react'
-// Importamos los gráficos
+// --- CAMBIO: Añadimos 'TipoHabitacion' y 'Amenidad' ---
+import { Habitacion, Usuario, Reserva, TipoHabitacion, Amenidad } from '@/types' 
+import { Home, Users, BarChart3, Plus, Edit, Trash2, X, Save, TrendingUp, DollarSign, Calendar, Filter, AlertCircle, RefreshCw, XCircle, CheckCircle } from 'lucide-react'
 import { 
   ResponsiveContainer, 
   LineChart, 
@@ -26,32 +25,54 @@ export const AdminDashboard = () => {
   const [operadores, setOperadores] = useState<Usuario[]>([])
   const [reservas, setReservas] = useState<Reserva[]>([])
   const [clientes, setClientes] = useState<Usuario[]>([])
+  
+  // --- ¡NUEVO! Estados para las nuevas listas ---
+  const [tiposHabitacion, setTiposHabitacion] = useState<TipoHabitacion[]>([])
+  const [amenidades, setAmenidades] = useState<Amenidad[]>([])
+  
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     cargarDatos()
   }, [])
 
-  // Función de carga con Promise.all (Arregla la Race Condition)
   const cargarDatos = async () => {
     setLoading(true);
     try {
+      // 1. Creamos todas las promesas de consulta
       const habPromise = supabase.from('habitaciones').select('*').order('numero')
       const opPromise = supabase.from('usuarios').select('*').eq('rol', 'operador').order('nombre')
       const cliPromise = supabase.from('usuarios').select('*').eq('rol', 'usuario').order('nombre')
       const resPromise = supabase.from('reservas').select('*').order('fecha_reserva', { ascending: false }) 
+      
+      // --- ¡NUEVO! Añadimos las nuevas tablas a la carga ---
+      const tiposPromise = supabase.from('tipos_habitacion').select('*').order('nombre')
+      const amenidadesPromise = supabase.from('amenidades').select('*').order('nombre')
 
-      const [habResult, opResult, resResult, cliResult] = await Promise.all([
+      // 2. Las ejecutamos todas en paralelo
+      const [
+        habResult, 
+        opResult, 
+        resResult, 
+        cliResult, 
+        tiposResult, 
+        amenidadesResult
+      ] = await Promise.all([
         habPromise,
         opPromise,
         resPromise,
-        cliPromise
+        cliPromise,
+        tiposPromise,
+        amenidadesPromise
       ]);
       
+      // 3. Actualizamos el estado
       setHabitaciones(habResult.data || [])
       setOperadores(opResult.data || [])
       setReservas(resResult.data || [])
       setClientes(cliResult.data || [])
+      setTiposHabitacion(tiposResult.data || [])
+      setAmenidades(amenidadesResult.data || [])
 
     } catch (error) {
       console.error('Error cargando datos:', error)
@@ -129,7 +150,13 @@ export const AdminDashboard = () => {
 
         {/* Contenido */}
         {activeTab === 'habitaciones' && (
-          <GestionHabitaciones habitaciones={habitaciones} onRecargar={cargarDatos} />
+          <GestionHabitaciones 
+            habitaciones={habitaciones} 
+            // --- ¡NUEVO! Pasamos las listas al componente ---
+            tipos={tiposHabitacion}
+            amenidades={amenidades}
+            onRecargar={cargarDatos} 
+          />
         )}
         {activeTab === 'reservas' && (
           <GestionReservas 
@@ -151,7 +178,7 @@ export const AdminDashboard = () => {
 }
 
 // -----------------------------------------------------------
-// GESTIÓN DE RESERVAS (CON BOTÓN DE EDITAR Y CANCELAR)
+// GESTIÓN DE RESERVAS
 // -----------------------------------------------------------
 const GestionReservas = ({ 
   reservas, 
@@ -176,7 +203,6 @@ const GestionReservas = ({
   const tiposDeHabitacion = [...new Set(habitaciones.map(h => h.tipo))];
 
   useEffect(() => {
-    // Re-filtra la lista cada vez que cambien los datos o los filtros
     let tsInicio = 0;
     if (fechaInicio) {
       const [y, m, d] = fechaInicio.split('-').map(Number);
@@ -230,22 +256,35 @@ const GestionReservas = ({
     handleCerrarModal();
   };
 
-  // --- ¡NUEVA FUNCIÓN PARA CANCELAR! ---
   const handleCancelar = async (reservaId: string) => {
-    if (!confirm('¿Estás seguro de que querés CANCELAR esta reserva? Esta acción no se puede deshacer.')) {
+    if (!confirm('¿Estás seguro de que querés CANCELAR esta reserva?')) {
       return;
     }
-    
     try {
       await supabase
         .from('reservas')
         .update({ estado: 'cancelada' })
         .eq('id', reservaId);
-        
-      onRecargar(); // Refresca la lista
+      onRecargar();
     } catch (err: any) {
       console.error("Error al cancelar reserva:", err);
       alert("Error al cancelar la reserva: " + err.message);
+    }
+  };
+  
+  const handleCompletar = async (reservaId: string) => {
+    if (!confirm('¿Estás seguro de que querés marcar esta reserva como COMPLETADA?')) {
+      return;
+    }
+    try {
+      await supabase
+        .from('reservas')
+        .update({ estado: 'completada' })
+        .eq('id', reservaId);
+      onRecargar();
+    } catch (err: any) {
+      console.error("Error al completar reserva:", err);
+      alert("Error al completar la reserva: " + err.message);
     }
   };
 
@@ -333,22 +372,28 @@ const GestionReservas = ({
                 </div>
               </div>
 
-              {/* --- ¡NUEVO LAYOUT DE BOTONES! --- */}
-              <div className="mt-4 flex gap-2">
+              {/* Layout de 3 botones */}
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                <button
+                  onClick={() => handleCompletar(reserva.id)}
+                  disabled={reserva.estado !== 'activa'}
+                  className="px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg text-sm font-medium flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  Completar
+                </button>
                 <button
                   onClick={() => handleAbrirModal(reserva)}
-                  // Solo se puede editar si está 'activa'
                   disabled={reserva.estado !== 'activa'}
-                  className="flex-1 px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Edit className="h-4 w-4" />
                   Editar
                 </button>
                 <button
                   onClick={() => handleCancelar(reserva.id)}
-                  // Solo se puede cancelar si está 'activa'
                   disabled={reserva.estado !== 'activa'}
-                  className="flex-1 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium flex items-center justify-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <XCircle className="h-4 w-4" />
                   Cancelar
@@ -374,37 +419,37 @@ const GestionReservas = ({
 }
 
 // -----------------------------------------------------------
-// GESTIÓN DE HABITACIONES
+// GESTIÓN DE HABITACIONES (MODAL ACTUALIZADO)
 // -----------------------------------------------------------
 const GestionHabitaciones = ({ 
-  habitaciones, 
+  habitaciones,
+  tipos,         // <--- ¡NUEVO!
+  amenidades,    // <--- ¡NUEVO!
   onRecargar 
 }: { 
   habitaciones: Habitacion[]
+  tipos: TipoHabitacion[]
+  amenidades: Amenidad[]
   onRecargar: () => void 
 }) => {
   const [showModal, setShowModal] = useState(false)
   const [editando, setEditando] = useState<Habitacion | null>(null)
-  const [formData, setFormData] = useState({
+  
+  // --- Estado inicial del formulario (vacío) ---
+  const estadoInicialForm = {
     numero: '',
-    tipo: '',
+    tipo: tipos.length > 0 ? tipos[0].nombre : '', // Valor por defecto
     precio_noche: '',
     capacidad: '',
-    amenidades: '',
+    amenidades: [] as string[], // Ahora es un array de strings
     descripcion: '',
     estado: 'disponible'
-  })
+  }
+  
+  const [formData, setFormData] = useState(estadoInicialForm)
 
   const resetForm = () => {
-    setFormData({
-      numero: '',
-      tipo: '',
-      precio_noche: '',
-      capacidad: '',
-      amenidades: '',
-      descripcion: '',
-      estado: 'disponible'
-    })
+    setFormData(estadoInicialForm)
     setEditando(null)
     setShowModal(false)
   }
@@ -416,22 +461,43 @@ const GestionHabitaciones = ({
       tipo: hab.tipo,
       precio_noche: hab.precio_noche?.toString() || '',
       capacidad: hab.capacidad?.toString() || '',
-      amenidades: hab.amenidades?.join(', ') || '',
+      amenidades: hab.amenidades || [], // Usamos el array de amenidades
       descripcion: hab.descripcion || '',
       estado: hab.estado
     })
     setShowModal(true)
   }
+  
+  // --- ¡NUEVO! Handler para los checkboxes ---
+  const handleAmenidadesChange = (amenidadNombre: string) => {
+    setFormData(prev => {
+      const yaExiste = prev.amenidades.includes(amenidadNombre);
+      if (yaExiste) {
+        // Si ya está, la filtramos (la saca)
+        return {
+          ...prev,
+          amenidades: prev.amenidades.filter(a => a !== amenidadNombre)
+        }
+      } else {
+        // Si no está, la añadimos
+        return {
+          ...prev,
+          amenidades: [...prev.amenidades, amenidadNombre]
+        }
+      }
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // El 'dataToSave' ahora usa el array de amenidades
     const dataToSave = {
       numero: formData.numero,
       tipo: formData.tipo,
       precio_noche: parseFloat(formData.precio_noche),
       capacidad: parseInt(formData.capacidad),
-      amenidades: formData.amenidades.split(',').map(a => a.trim()),
+      amenidades: formData.amenidades, // Ya es un array
       descripcion: formData.descripcion,
       estado: formData.estado
     }
@@ -474,7 +540,10 @@ const GestionHabitaciones = ({
     <div>
       <div className="mb-6">
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => {
+            resetForm(); // Resetea el form al abrir
+            setShowModal(true);
+          }}
           className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center gap-2 shadow-lg"
         >
           <Plus className="h-5 w-5" />
@@ -523,7 +592,7 @@ const GestionHabitaciones = ({
         ))}
       </div>
 
-      {/* Modal */}
+      {/* Modal de Habitación (ACTUALIZADO) */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -543,8 +612,18 @@ const GestionHabitaciones = ({
                   <input type="text" value={formData.numero} onChange={(e) => setFormData({ ...formData, numero: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" required />
                 </div>
                 <div>
+                  {/* --- CAMBIO: de input a select --- */}
                   <label className="block text-sm font-medium text-slate-700 mb-2">Tipo</label>
-                  <input type="text" value={formData.tipo} onChange={(e) => setFormData({ ...formData, tipo: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" required />
+                  <select
+                    value={formData.tipo}
+                    onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                    required
+                  >
+                    {tipos.map(t => (
+                      <option key={t.id} value={t.nombre}>{t.nombre}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">Precio por Noche</label>
@@ -563,14 +642,32 @@ const GestionHabitaciones = ({
                   </select>
                 </div>
               </div>
+
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Amenidades (separadas por coma)</label>
-                <input type="text" value={formData.amenidades} onChange={(e) => setFormData({ ...formData, amenidades: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" placeholder="WiFi, TV, Aire acondicionado" />
+                {/* --- CAMBIO: de input a checkboxes --- */}
+                <label className="block text-sm font-medium text-slate-700 mb-2">
+                  Amenidades
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 p-4 border border-slate-300 rounded-lg">
+                  {amenidades.map(a => (
+                    <label key={a.id} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={formData.amenidades.includes(a.nombre)}
+                        onChange={() => handleAmenidadesChange(a.nombre)}
+                        className="rounded text-amber-600 focus:ring-amber-500"
+                      />
+                      <span className="text-sm text-slate-700">{a.nombre}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
+
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Descripción</label>
                 <textarea value={formData.descripcion} onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" rows={3} />
               </div>
+
               <div className="flex gap-3 pt-4">
                 <button type="submit" className="flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center justify-center gap-2">
                   <Save className="h-5 w-5" />
@@ -589,7 +686,178 @@ const GestionHabitaciones = ({
 }
 
 // -----------------------------------------------------------
-// ESTADÍSTICAS (CON GRÁFICOS)
+// GESTIÓN DE OPERADORES
+// -----------------------------------------------------------
+const GestionOperadores = ({ 
+  operadores, 
+  onRecargar 
+}: { 
+  operadores: Usuario[]
+  onRecargar: () => void 
+}) => {
+  const [showCreateModal, setShowCreateModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [operadorAEditar, setOperadorAEditar] = useState<Usuario | null>(null)
+  
+  const [formData, setFormData] = useState({
+    email: '',
+    nombre: '',
+    password: ''
+  })
+  const [errores, setErrores] = useState<{ nombre?: string, general?: string }>({});
+
+  const handleNombreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const valor = e.target.value;
+    const soloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$/;
+    if (soloLetras.test(valor)) {
+      setFormData({ ...formData, nombre: valor });
+      setErrores({ ...errores, nombre: "" });
+    } else {
+      setErrores({ ...errores, nombre: "Solo se permiten letras y espacios." });
+    }
+  };
+
+  const handleCrearSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrores({}); 
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: { 
+          email: formData.email,
+          password: formData.password,
+          nombre: formData.nombre,
+          rol: 'operador'
+        },
+      });
+      
+      if (error) {
+        const errorData = await error.context.json();
+        throw new Error(errorData.error.message);
+      }
+      
+      setFormData({ email: '', nombre: '', password: '' })
+      setShowCreateModal(false)
+      onRecargar()
+      
+    } catch (err: any) {
+      console.error('Error creando operador:', err)
+      setErrores({ ...errores, general: err.message || "Error desconocido" });
+    }
+  }
+  
+  const handleEditarClick = (operador: Usuario) => {
+    setOperadorAEditar(operador);
+    setShowEditModal(true);
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('¿Estás seguro de eliminar este operador?')) return
+    try {
+      await supabase.from('usuarios').delete().eq('id', id)
+      onRecargar()
+    } catch (error) {
+      console.error('Error eliminando operador:', error)
+    }
+  }
+
+  return (
+    <div>
+      <div className="mb-6">
+        <button
+          onClick={() => {
+            setErrores({}); 
+            setShowCreateModal(true);
+          }}
+          className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center gap-2 shadow-lg"
+        >
+          <Plus className="h-5 w-5" />
+          Nuevo Operador
+        </button>
+      </div>
+
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {operadores.map((op) => (
+          <div key={op.id} className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
+            <div className="mb-4">
+              <h3 className="font-bold text-lg">{op.nombre}</h3>
+              <p className="text-sm text-slate-600">{op.email}</p>
+              <p className="text-xs text-slate-400 mt-1">
+                Creado: {new Date(op.fecha_creacion || '').toLocaleDateString('es-ES')}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleEditarClick(op)}
+                className="flex-1 px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium flex items-center justify-center gap-1"
+              >
+                <Edit className="h-4 w-4" />
+                Editar
+              </button>
+              <button
+                onClick={() => handleDelete(op.id)}
+                className="flex-1 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium flex items-center justify-center gap-1"
+              >
+                <Trash2 className="h-4 w-4" />
+                Eliminar
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Modal para CREAR Operador */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full">
+            <h2 className="text-2xl font-bold mb-6">Nuevo Operador</h2>
+            <form onSubmit={handleCrearSubmit} className="space-y-4">
+              {errores.general && (
+                <p className="text-red-600 text-sm p-3 bg-red-50 rounded-lg">{errores.general}</p>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Nombre</label>
+                <input type="text" value={formData.nombre} onChange={handleNombreChange} className={`w-full px-4 py-2 border ${errores.nombre ? "border-red-400" : "border-slate-300"} rounded-lg focus:ring-2 focus:ring-amber-500 outline-none`} placeholder="Ingrese nombre" required />
+                {errores.nombre && (<p className="text-red-600 text-sm mt-1">{errores.nombre}</p>)}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
+                <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-2">Contraseña</label>
+                <input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" required minLength={6} />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button type="submit" className="flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium">
+                  Crear
+                </button>
+                <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium">
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      
+      {/* Modal para EDITAR Operador */}
+      {showEditModal && operadorAEditar && (
+        <ModalEditarOperador 
+          operador={operadorAEditar}
+          onClose={() => setShowEditModal(false)}
+          onSave={() => {
+            setShowEditModal(false);
+            onRecargar();
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+// -----------------------------------------------------------
+// ESTADÍSTICAS
 // -----------------------------------------------------------
 const Estadisticas = ({ 
   habitaciones, 
@@ -725,7 +993,7 @@ const Estadisticas = ({
 }
 
 // -----------------------------------------------------------
-// ¡NUEVO COMPONENTE! MODAL PARA EDITAR RESERVAS
+// MODAL PARA EDITAR RESERVAS
 // -----------------------------------------------------------
 const ModalEditarReserva = ({
   reserva,
@@ -751,14 +1019,12 @@ const ModalEditarReserva = ({
   const [nuevoTotal, setNuevoTotal] = useState(reserva.total);
   const [diferencia, setDiferencia] = useState(0);
 
-  // ¡NUEVO! Buscar el cliente para el título
   const clienteInfo = clientes.find(c => c.id === reserva.usuario_id);
   const tituloModal = clienteInfo 
     ? `Editar Reserva de ${clienteInfo.nombre}` 
     : `Editar Reserva #${reserva.id.slice(0, 8)}`;
 
 
-  // Recalcular el total cada vez que cambien los datos del formulario
   useEffect(() => {
     try {
       const { fecha_entrada, fecha_salida, habitacion_id } = formData;
@@ -797,7 +1063,6 @@ const ModalEditarReserva = ({
     setError('');
 
     try {
-      // 1. Validar Datos
       const habInfo = habitaciones.find(h => h.id === formData.habitacion_id);
       if (!habInfo) throw new Error("Habitación no encontrada");
 
@@ -811,7 +1076,6 @@ const ModalEditarReserva = ({
         throw new Error("La fecha de salida debe ser posterior a la de entrada");
       }
 
-      // 2. Validar Disponibilidad (¡IMPORTANTE!)
       const fechasCambiaron = formData.fecha_entrada !== reserva.fecha_entrada || formData.fecha_salida !== reserva.fecha_salida;
       const habitacionCambio = formData.habitacion_id !== reserva.habitacion_id;
 
@@ -836,7 +1100,6 @@ const ModalEditarReserva = ({
         }
       }
 
-      // 3. Guardar en BDD
       await supabase
         .from('reservas')
         .update({
@@ -846,7 +1109,7 @@ const ModalEditarReserva = ({
         })
         .eq('id', reserva.id);
 
-      onSave(); // Llama a onRecargar y cierra el modal
+      onSave();
       
     } catch (err: any) {
       setError(err.message || "Error al actualizar la reserva");
@@ -965,355 +1228,6 @@ const ModalEditarReserva = ({
           </div>
 
           {/* Fila 4: Botones */}
-          <div className="flex gap-3 pt-4">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {loading ? <RefreshCw className="animate-spin h-5 w-5" /> : <Save className="h-5 w-5" />}
-              Guardar Cambios
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium disabled:opacity-50"
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  )
-}
-
-// --- Reemplaza el componente 'GestionOperadores' existente por este ---
-
-const GestionOperadores = ({ 
-  operadores, 
-  onRecargar 
-}: { 
-  operadores: Usuario[]
-  onRecargar: () => void 
-}) => {
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  // --- NUEVO: Estado para el modal de EDICIÓN ---
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [operadorAEditar, setOperadorAEditar] = useState<Usuario | null>(null)
-  
-  const [formData, setFormData] = useState({
-    email: '',
-    nombre: '',
-    password: ''
-  })
-  const [errores, setErrores] = useState<{ nombre?: string, general?: string }>({});
-
-  const handleNombreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const valor = e.target.value;
-    const soloLetras = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]*$/;
-    if (soloLetras.test(valor)) {
-      setFormData({ ...formData, nombre: valor });
-      setErrores({ ...errores, nombre: "" });
-    } else {
-      setErrores({ ...errores, nombre: "Solo se permiten letras y espacios." });
-    }
-  };
-
-  const handleCrearSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrores({}); 
-
-    try {
-      const { data, error } = await supabase.functions.invoke('create-user', {
-        body: { 
-          email: formData.email,
-          password: formData.password,
-          nombre: formData.nombre,
-          rol: 'operador'
-        },
-      });
-      
-      if (error) {
-        const errorData = await error.context.json();
-        throw new Error(errorData.error.message);
-      }
-      
-      setFormData({ email: '', nombre: '', password: '' })
-      setShowCreateModal(false)
-      onRecargar()
-      
-    } catch (err: any) {
-      console.error('Error creando operador:', err)
-      setErrores({ ...errores, general: err.message || "Error desconocido" });
-    }
-  }
-  
-  // --- NUEVO: Manejador para abrir el modal de edición ---
-  const handleEditarClick = (operador: Usuario) => {
-    setOperadorAEditar(operador);
-    setShowEditModal(true);
-  }
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('¿Estás seguro de eliminar este operador?')) return
-    try {
-      await supabase.from('usuarios').delete().eq('id', id)
-      onRecargar()
-    } catch (error) {
-      console.error('Error eliminando operador:', error)
-    }
-  }
-
-  return (
-    <div>
-      <div className="mb-6">
-        <button
-          onClick={() => {
-            setErrores({}); 
-            setShowCreateModal(true);
-          }}
-          className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center gap-2 shadow-lg"
-        >
-          <Plus className="h-5 w-5" />
-          Nuevo Operador
-        </button>
-      </div>
-
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {operadores.map((op) => (
-          <div key={op.id} className="bg-white rounded-lg p-6 shadow-sm border border-slate-200">
-            <div className="mb-4">
-              <h3 className="font-bold text-lg">{op.nombre}</h3>
-              <p className="text-sm text-slate-600">{op.email}</p>
-              <p className="text-xs text-slate-400 mt-1">
-                Creado: {new Date(op.fecha_creacion || '').toLocaleDateString('es-ES')}
-              </p>
-            </div>
-            {/* --- CAMBIO: Dos botones (Editar y Eliminar) --- */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleEditarClick(op)}
-                className="flex-1 px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium flex items-center justify-center gap-1"
-              >
-                <Edit className="h-4 w-4" />
-                Editar
-              </button>
-              <button
-                onClick={() => handleDelete(op.id)}
-                className="flex-1 px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg text-sm font-medium flex items-center justify-center gap-1"
-              >
-                <Trash2 className="h-4 w-4" />
-                Eliminar
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Modal para CREAR Operador */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full">
-            <h2 className="text-2xl font-bold mb-6">Nuevo Operador</h2>
-            <form onSubmit={handleCrearSubmit} className="space-y-4">
-              {errores.general && (
-                <p className="text-red-600 text-sm p-3 bg-red-50 rounded-lg">{errores.general}</p>
-              )}
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Nombre</label>
-                <input type="text" value={formData.nombre} onChange={handleNombreChange} className={`w-full px-4 py-2 border ${errores.nombre ? "border-red-400" : "border-slate-300"} rounded-lg focus:ring-2 focus:ring-amber-500 outline-none`} placeholder="Ingrese nombre" required />
-                {errores.nombre && (<p className="text-red-600 text-sm mt-1">{errores.nombre}</p>)}
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
-                <input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" required />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Contraseña</label>
-                <input type="password" value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" required minLength={6} />
-              </div>
-              <div className="flex gap-3 pt-4">
-                <button type="submit" className="flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium">
-                  Crear
-                </button>
-                <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium">
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-      
-      {/* --- ¡NUEVO MODAL PARA EDITAR OPERADOR! --- */}
-      {showEditModal && operadorAEditar && (
-        <ModalEditarOperador 
-          operador={operadorAEditar}
-          onClose={() => setShowEditModal(false)}
-          onSave={() => {
-            setShowEditModal(false);
-            onRecargar();
-          }}
-        />
-      )}
-    </div>
-  )
-}
-
-// -----------------------------------------------------------
-// ¡NUEVO COMPONENTE! MODAL PARA EDITAR OPERADOR
-// -----------------------------------------------------------
-const ModalEditarOperador = ({
-  operador,
-  onClose,
-  onSave
-}: {
-  operador: Usuario
-  onClose: () => void
-  onSave: () => void
-}) => {
-  const { user: adminUser } = useAuth(); // ¡El admin que está logueado!
-  
-  const [formData, setFormData] = useState({
-    nombre: operador.nombre,
-    email: operador.email,
-    rol: operador.rol
-  });
-  const [nuevaPassword, setNuevaPassword] = useState('');
-  const [adminPassword, setAdminPassword] = useState(''); // La contraseña del admin para confirmar
-  
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    if (!adminPassword) {
-      setError('Debes ingresar tu contraseña de administrador para confirmar los cambios.');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      // 1. Llamamos a la nueva Edge Function
-      const { data, error: funcError } = await supabase.functions.invoke('admin-update-user', {
-        body: { 
-          admin_id: adminUser?.id,
-          admin_password: adminPassword,
-          target_user_id: operador.id,
-          nombre: formData.nombre,
-          email: formData.email,
-          rol: formData.rol,
-          nueva_password: nuevaPassword || undefined // Solo la envía si no está vacía
-        },
-      });
-
-      if (funcError) {
-        const errorData = await funcError.context.json();
-        throw new Error(errorData.error.message);
-      }
-      
-      onSave(); // Cierra el modal y recarga
-
-    } catch (err: any) {
-      setError(err.message || 'Error desconocido al actualizar.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">Editar Operador</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
-            <X className="h-6 w-6" />
-          </button>
-        </div>
-        
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2 text-red-700">
-            <AlertCircle className="h-5 w-5 flex-shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Datos del Operador */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Nombre</label>
-            <input 
-              type="text" 
-              value={formData.nombre}
-              onChange={(e) => setFormData({...formData, nombre: e.target.value})}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-              required 
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
-            <input 
-              type="email" 
-              value={formData.email}
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-              required 
-            />
-          </div>
-          
-          {/* Sección de Cambio de Rol */}
-          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-            <h3 className="font-medium text-slate-800 mb-2">Cambiar Rol</h3>
-            <select 
-              value={formData.rol}
-              onChange={(e) => setFormData({...formData, rol: e.target.value})}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-            >
-              <option value="operador">Operador</option>
-              <option value="administrador">Administrador</option>
-            </select>
-            {formData.rol === 'administrador' && (
-              <p className="text-xs text-red-600 mt-2">
-                ¡Atención! Estás a punto de ascender este usuario a Administrador.
-              </p>
-            )}
-          </div>
-
-          {/* Sección de Cambio de Contraseña */}
-          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-            <h3 className="font-medium text-slate-800 mb-2">Cambiar Contraseña (Opcional)</h3>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Nueva Contraseña</label>
-            <input 
-              type="password" 
-              placeholder="Dejar en blanco para no cambiar"
-              value={nuevaPassword}
-              onChange={(e) => setNuevaPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-              minLength={6}
-            />
-          </div>
-          
-          {/* Sección de Confirmación de Admin */}
-          <div className="p-4 bg-amber-50 rounded-lg border border-amber-300">
-            <h3 className="font-bold text-amber-800 mb-2">Confirmar Cambios</h3>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              Ingresá TU contraseña de Admin
-            </label>
-            <input 
-              type="password" 
-              value={adminPassword}
-              onChange={(e) => setAdminPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-amber-400 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
-              required
-            />
-          </div>
-
-          {/* Botones de Acción */}
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
