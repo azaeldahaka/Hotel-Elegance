@@ -1171,3 +1171,182 @@ const ModalEditarReserva = ({
     </div>
   )
 }
+
+// -----------------------------------------------------------
+// MODAL PARA EDITAR OPERADOR (LÓGICA REAL)
+// -----------------------------------------------------------
+const ModalEditarOperador = ({
+  operador,
+  onClose,
+  onSave
+}: {
+  operador: Usuario
+  onClose: () => void
+  onSave: () => void
+}) => {
+  const { user: adminUser } = useAuth(); // Obtenemos al admin logueado
+  
+  const [formData, setFormData] = useState({
+    nombre: operador.nombre,
+    email: operador.email,
+    rol: operador.rol
+  });
+  const [nuevaPassword, setNuevaPassword] = useState('');
+  const [adminPassword, setAdminPassword] = useState(''); // Para confirmar identidad
+  
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    if (!adminPassword) {
+      setError('Debes ingresar tu contraseña de administrador para confirmar los cambios.');
+      setLoading(false);
+      return;
+    }
+
+    try {
+      // Llamamos a la Edge Function 'admin-update-user'
+      const { data, error: funcError } = await supabase.functions.invoke('admin-update-user', {
+        body: { 
+          admin_id: adminUser?.id,
+          admin_password: adminPassword,
+          target_user_id: operador.id,
+          nombre: formData.nombre,
+          email: formData.email,
+          rol: formData.rol,
+          nueva_password: nuevaPassword || undefined // Solo se envía si escribió algo
+        },
+      });
+
+      if (funcError) {
+        const errorData = await funcError.context.json();
+        throw new Error(errorData.error.message || "Error al actualizar operador");
+      }
+      
+      onSave(); // Cierra y recarga
+
+    } catch (err: any) {
+      setError(err.message || 'Error desconocido al actualizar.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">Editar Operador</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+        
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2 text-red-700">
+            <AlertCircle className="h-5 w-5 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Datos Básicos */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Nombre</label>
+            <input 
+              type="text" 
+              value={formData.nombre}
+              onChange={(e) => setFormData({...formData, nombre: e.target.value})}
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+              required 
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
+            <input 
+              type="email" 
+              value={formData.email}
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+              required 
+            />
+          </div>
+          
+          {/* Cambio de Rol */}
+          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <h3 className="font-medium text-slate-800 mb-2">Cambiar Rol</h3>
+            <select 
+              value={formData.rol}
+              onChange={(e) => setFormData({...formData, rol: e.target.value})}
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+            >
+              <option value="operador">Operador</option>
+              <option value="administrador">Administrador</option>
+            </select>
+            {formData.rol === 'administrador' && (
+              <p className="text-xs text-red-600 mt-2 font-semibold">
+                ⚠️ ¡Atención! Estás a punto de dar permisos de Administrador a este usuario.
+              </p>
+            )}
+          </div>
+
+          {/* Cambio de Contraseña (Opcional) */}
+          <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <h3 className="font-medium text-slate-800 mb-2">Cambiar Contraseña (Opcional)</h3>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Nueva Contraseña</label>
+            <input 
+              type="password" 
+              placeholder="Dejar vacío para mantener la actual"
+              value={nuevaPassword}
+              onChange={(e) => setNuevaPassword(e.target.value)}
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+              minLength={6}
+            />
+          </div>
+          
+          {/* Confirmación de Seguridad */}
+          <div className="p-4 bg-amber-50 rounded-lg border border-amber-300">
+            <h3 className="font-bold text-amber-800 mb-2 flex items-center gap-2">
+              <Lock className="h-4 w-4" /> Confirmar identidad
+            </h3>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Ingresá TU contraseña de Admin para guardar:
+            </label>
+            <input 
+              type="password" 
+              value={adminPassword}
+              onChange={(e) => setAdminPassword(e.target.value)}
+              className="w-full px-4 py-2 border border-amber-400 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none bg-white"
+              required
+              placeholder="Tu contraseña..."
+            />
+          </div>
+
+          {/* Botones */}
+          <div className="flex gap-3 pt-4">
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {loading ? <RefreshCw className="animate-spin h-5 w-5" /> : <Save className="h-5 w-5" />}
+              Guardar Cambios
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium disabled:opacity-50"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}

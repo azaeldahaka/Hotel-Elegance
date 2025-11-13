@@ -60,3 +60,16 @@ export interface Pago {
   estado: 'pendiente' | 'completado' | 'fallido'
   fecha_pago?: string
 }
+
+
+export interface TipoHabitacion {
+  id: string
+  nombre: string
+  descripcion?: string
+}
+
+export interface Amenidad {
+  id: string
+  nombre: string
+  icono?: string
+}

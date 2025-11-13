@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Habitacion } from '@/types'
 import { Calendar, Users, CreditCard, AlertCircle, CheckCircle } from 'lucide-react'
-import { enviarCorreoCliente } from '../src/utils/email.js'
 
 export const CrearReserva = () => {
   const { id } = useParams()
