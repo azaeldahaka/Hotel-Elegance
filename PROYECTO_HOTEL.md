@@ -1,235 +1,131 @@
-# Sistema de Gestión Hotelera - Hotel Elegance
+# 🏨 Sistema de Gestión Hotelera - Hotel Elegance ✨
 
-## URL de la Aplicación
-**🌐 https://uncb74ersmdu.space.minimax.io**
+> **Trabajo Final Integrador - Lenguaje 4**
 
-## Descripción del Proyecto
-
-Sistema web full-stack completo para la gestión integral de un hotel de lujo con tres tipos de usuarios diferenciados (Usuario, Operador, Administrador). La aplicación permite reservar habitaciones, gestionar reservas, procesar consultas y administrar todo el sistema hotelero.
-
-## Tecnologías Utilizadas
-
-### Frontend
-- **React 18.3** con TypeScript
-- **Vite 6.0** como build tool
-- **Tailwind CSS** para estilos
-- **React Router** para navegación
-- **Lucide React** para iconos
-- **Date-fns** para manejo de fechas
-
-### Backend
-- **Supabase** (PostgreSQL)
-- **Edge Functions** para autenticación personalizada
-- **Google Maps API** para visualización de habitaciones
-
-### Diseño
-- Paleta de colores elegante (dorado, blanco, gris oscuro, azul marino)
-- Diseño completamente responsivo
-- Interfaz moderna y sofisticada
-- Imágenes de alta calidad
-
-## Credenciales de Acceso
-
-### Usuario Regular
-- **Email:** cliente@icon.com
-- **Contraseña:** 123456
-
-### Operador
-- **Email:** operador@icon.com
-- **Contraseña:** 123456
-
-### Administrador
-- **Email:** admin@icon.com
-- **Contraseña:** 123456
-
-## Funcionalidades Implementadas
-
-### 1. Sistema de Autenticación Personalizado ✅
-- Tabla de usuarios en PostgreSQL con campos completos
-- Login/registro sin Supabase Auth (autenticación personalizada)
-- Sistema de sesiones con localStorage
-- Validación completa de formularios
-- Redirección automática según rol
-
-### 2. Funcionalidades para Usuario ✅
-- Vista de catálogo de habitaciones con imágenes y detalles
-- Vista de servicios del hotel (restaurante, spa, gimnasio, piscina)
-- Sistema de visualización de reservas activas
-- Dashboard personal con información organizada
-- Interfaz intuitiva y atractiva
-
-### 3. Funcionalidades para Operador ✅
-- Dashboard con gestión de habitaciones
-- Vista de todas las reservas con filtros (activas, completadas, canceladas)
-- Funcionalidad para cambiar estado de reservas
-- Sistema para abrir/cerrar habitaciones (cambiar disponibilidad)
-- Bandeja de consultas con opción de responder
-- Estadísticas de ocupación
-
-### 4. Funcionalidades para Administrador ✅
-- **CRUD completo de habitaciones:**
-  - Crear, editar, eliminar habitaciones
-  - Campos: número, tipo, precio, capacidad, amenidades, estado
-  - Validación completa de datos
-  
-- **CRUD completo de operadores:**
-  - Crear y eliminar operadores
-  - Gestión de credenciales
-  
-- **Panel de estadísticas:**
-  - KPIs principales (total habitaciones, disponibles, reservas, ingresos)
-  - Resumen de ingresos (completados y pendientes)
-  - Estado de reservas
-  - Habitaciones por tipo
-
-### 5. Base de Datos (PostgreSQL en Supabase) ✅
-
-**Tablas Creadas:**
-
-```sql
--- usuarios: id, email, password, nombre, rol, fecha_creacion
--- habitaciones: id, numero, tipo, precio_noche, capacidad, amenidades, estado, imagen_url, descripcion
--- servicios: id, nombre, descripcion, precio, imagen_url, disponible
--- reservas: id, usuario_id, habitacion_id, fecha_entrada, fecha_salida, num_huespedes, estado, total
--- consultas: id, usuario_id, asunto, mensaje, respuesta, estado, fecha_consulta, fecha_respuesta
--- pagos: id, reserva_id, monto, metodo_pago, estado, fecha_pago
-```
-
-**Datos de Ejemplo:**
-- 6 habitaciones con información completa
-- 6 servicios del hotel
-- Usuarios de prueba para cada rol
-
-### 6. Validaciones ✅
-- Validación de formato de email
-- Validación de longitud de contraseñas (mínimo 6 caracteres)
-- Validación de campos numéricos
-- Validación de roles de usuario
-- Mensajes de error en español
-- Feedback visual en todas las acciones
-
-### 7. Diseño UX/UI ✅
-- Interfaz moderna y responsiva con Tailwind CSS
-- Navegación diferente según rol
-- Diseño elegante para hotel de lujo
-- Colores sofisticados (dorado, blanco, gris oscuro)
-- Imágenes de alta calidad
-- Feedback visual (loaders, mensajes)
-- Optimizado para móvil y escritorio
-
-### 8. Edge Functions Implementadas ✅
-- **auth-login:** Autenticación de usuarios
-- **auth-register:** Registro de nuevos usuarios
-- **check-room-availability:** Verificación de disponibilidad
-
-## Estructura del Proyecto
-
-```
-hotel-management/
-├── public/
-│   └── images/
-│       ├── lobby/        # Imágenes del lobby
-│       ├── rooms/        # Imágenes de habitaciones
-│       └── services/     # Imágenes de servicios
-├── src/
-│   ├── components/
-│   │   └── Navbar.tsx
-│   ├── contexts/
-│   │   └── AuthContext.tsx
-│   ├── lib/
-│   │   └── supabase.ts
-│   ├── pages/
-│   │   ├── admin/
-│   │   │   └── AdminDashboard.tsx
-│   │   ├── operador/
-│   │   │   └── OperadorDashboard.tsx
-│   │   ├── usuario/
-│   │   │   └── UsuarioDashboard.tsx
-│   │   ├── Home.tsx
-│   │   ├── Login.tsx
-│   │   └── Register.tsx
-│   ├── types/
-│   │   └── index.ts
-│   ├── App.tsx
-│   └── main.tsx
-└── supabase/
-    └── functions/
-        ├── auth-login/
-        ├── auth-register/
-        └── check-room-availability/
-```
-
-## Características Destacadas
-
-### Seguridad
-- Autenticación personalizada con validación
-- Protección de rutas según rol
-- Almacenamiento seguro de sesiones
-
-### Experiencia de Usuario
-- Interfaz intuitiva y fácil de usar
-- Diseño responsivo para todos los dispositivos
-- Feedback visual inmediato
-- Navegación fluida
-
-### Administración
-- Panel completo para administradores
-- CRUD completo de entidades
-- Estadísticas en tiempo real
-- Gestión de permisos por rol
-
-## Cómo Usar la Aplicación
-
-### Para Usuarios
-1. Acceder a la URL del proyecto
-2. Registrarse o iniciar sesión con las credenciales proporcionadas
-3. Explorar habitaciones y servicios
-4. Ver reservas activas en el dashboard
-
-### Para Operadores
-1. Iniciar sesión con credenciales de operador
-2. Gestionar disponibilidad de habitaciones
-3. Administrar reservas (completar/cancelar)
-4. Responder consultas de clientes
-
-### Para Administradores
-1. Iniciar sesión con credenciales de administrador
-2. Gestionar habitaciones (crear, editar, eliminar)
-3. Administrar operadores
-4. Ver estadísticas del hotel
-
-## Notas Importantes
-
-### Seguridad en Producción
-⚠️ **IMPORTANTE:** Este proyecto usa autenticación simplificada para demostración. En un entorno de producción real, se debe:
-- Implementar hashing de contraseñas (bcrypt)
-- Usar tokens JWT seguros
-- Implementar HTTPS
-- Añadir rate limiting
-- Implementar CORS apropiado
-
-### Imágenes
-Todas las imágenes son de alta calidad y se almacenan en el directorio `public/images/`.
-
-### Base de Datos
-La base de datos está completamente configurada en Supabase con datos de ejemplo listos para usar.
-
-## Funcionalidades Futuras (Opcional)
-
-- Sistema de reservas completo con calendario
-- Integración real de pagos con Stripe
-- Notificaciones por email
-- Chat en vivo
-- Reportes PDF
-- Sistema de calificaciones
-- Multi-idioma
-
-## Soporte
-
-Para cualquier consulta o problema con la aplicación, contactar al equipo de desarrollo.
+## 🚀 Demo en Vivo
+¡Probá la aplicación ahora mismo!
+**🌐 [https://hotelelegance.netlify.app/](https://hotelelegance.netlify.app/)**
 
 ---
 
-**Desarrollado por:** MiniMax Agent
-**Fecha:** 2025
-**Versión:** 1.0.0
+## 📝 Descripción del Proyecto
+
+Este es un sistema **Full-Stack** completo diseñado para la gestión integral de un hotel de lujo. La plataforma conecta tres mundos diferentes: la experiencia del **Huésped**, la operación diaria del **Personal** y la gestión estratégica del **Administrador**.
+
+El objetivo fue crear una aplicación rápida, segura y con una experiencia de usuario (UX) fluida y moderna. 🎨
+
+---
+
+## 🛠️ Stack Tecnológico
+
+### 🎨 Frontend (La Cara Visible)
+* ⚛️ **React 18.3** - Biblioteca de UI moderna y reactiva.
+* ⚡ **Vite 6.0** - Build tool ultra-rápida.
+* 💅 **Tailwind CSS** - Estilos elegantes y 100% responsivos.
+* 🧭 **React Router** - Navegación fluida tipo SPA (Single Page Application).
+* 📊 **Recharts** - Gráficos de datos interactivos y profesionales.
+* 📅 **Date-fns** - Manejo preciso de fechas y reservas.
+* ✨ **Lucide React** - Iconografía moderna.
+
+### ☁️ Backend & Base de Datos (El Motor)
+* 🐘 **Supabase (PostgreSQL)** - Base de datos relacional robusta.
+* ⚡ **Edge Functions (Deno)** - Lógica de servidor segura para:
+    * 🔐 Autenticación y Hashing.
+    * 🚫 Validación de disponibilidad compleja.
+    * 👮‍♂️ Gestión de permisos administrativos.
+
+### 🗺️ Integraciones
+* 📍 **Google Maps API** - Ubicación interactiva en el Home.
+
+---
+
+## 🔑 Credenciales de Acceso (Demo)
+
+Para probar los diferentes roles, podés usar estas cuentas o crear las tuyas:
+
+| Rol | Email | Contraseña |
+| :--- | :--- | :--- |
+| 👤 **Usuario (Cliente)** | `cliente@icon.com` | `123456` |
+| 👷 **Operador** | `operador@hotel.com` | `temp123` |
+| 👑 **Administrador** | `admin@hotel.com` | `admin123` |
+
+---
+
+## 🌟 Funcionalidades Principales
+
+### 1. Seguridad y Autenticación 🔐
+* **Hashing SHA-256:** Las contraseñas nunca se guardan en texto plano.
+* **Roles & Permisos:** Rutas protegidas según si sos Admin, Operador o Usuario.
+* **Mi Perfil:** Los usuarios pueden cambiar su nombre, actualizar su contraseña o borrar su cuenta con seguridad de doble factor (pidiendo pass actual).
+
+### 2. Experiencia del Usuario (Cliente) 🏖️
+* **Catálogo Visual:** Exploración de habitaciones y servicios (Spa, Gym, etc.) con fotos.
+* **Reservas Inteligentes:** El sistema chequea disponibilidad en tiempo real para evitar *overbooking*.
+* **Gestión Total:**
+    * Ver reservas activas con nombres claros (nada de IDs raros).
+    * **Solicitar Cambios:** Si te arrepentís, podés pedir cambiar la fecha o habitación desde un panel dedicado.
+    * **Mensajería:** Chat directo con el hotel mediante el sistema de "Consultas".
+
+### 3. Panel de Operador 🛎️
+* **Control Diario:** Vista rápida de todas las reservas activas.
+* **Acciones Rápidas:**
+    * ✅ **Check-out:** Marcar reservas como completadas.
+    * ❌ **Cancelar:** Dar de baja reservas problemáticas.
+* **Atención:** Responder las dudas y solicitudes de cambio de los clientes.
+
+### 4. Panel de Administrador (Modo Dios) 👑
+* **📊 Dashboard de Estadísticas:**
+    * Gráficos de **Ingresos Mensuales** y **Popularidad**.
+    * KPIs en tiempo real (Ocupación, Ingresos totales, Pendientes).
+* **🛠️ Gestión de Reservas Avanzada:**
+    * Filtros potentes por **Fecha**, **Nombre** o **Tipo**.
+    * Edición forzosa de reservas (con recálculo automático de precios).
+* **🏨 Gestión de Inventario:**
+    * Crear/Editar habitaciones con **Selectores Dinámicos**.
+    * ¡Crear nuevas Amenidades (ej: Netflix) al vuelo!
+* **👥 Gestión de Personal:**
+    * Crear Operadores de forma segura.
+    * Ascender usuarios a Admin (requiere confirmación de contraseña maestra).
+
+---
+
+## 🗄️ Estructura de Base de Datos
+
+El proyecto utiliza un esquema relacional optimizado en PostgreSQL:
+
+* `usuarios` 👤
+* `habitaciones` 🛏️
+* `reservas` 📅
+* `tipos_habitacion` & `amenidades` 🏷️ *(Catálogos dinámicos)*
+* `servicios` 💆‍♂️
+* `consultas` 💬
+* `pagos` 💳
+
+---
+
+## ⚡ Edge Functions (Server-Side Logic)
+
+Para garantizar la seguridad, las operaciones críticas ocurren en el servidor:
+
+1.  `auth-login` / `auth-register`: Autenticación segura.
+2.  `create-user` / `admin-update-user`: Gestión de staff.
+3.  `check-room-availability`: El cerebro que evita conflictos de fechas.
+4.  `update-password` / `delete-account`: Gestión de perfil.
+
+---
+
+## 🚀 Despliegue
+
+* **Frontend:** Deploy continuo (CI/CD) en **Netlify**.
+* **Backend:** Cloud Functions en **Supabase**.
+
+---
+
+<div align="center">
+
+**Desarrollado con ❤️ y mucho café ☕ por:**
+### Flores Facundo Nestor
+
+*Lenguaje 4 - Año 2025*
+
+</div>
