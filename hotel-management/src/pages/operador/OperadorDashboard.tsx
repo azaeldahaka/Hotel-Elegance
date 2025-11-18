@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Habitacion, Usuario, Reserva } from '@/types'
-import { Calendar, Users, CheckCircle, XCircle, Clock, MessageSquare, Send, X, Mail, User as UserIcon, Bed } from 'lucide-react'
+// Agregamos los iconos necesarios para la edición y UI
+import { Calendar, Users, CheckCircle, XCircle, Clock, MessageSquare, Send, X, Mail, User as UserIcon, Bed, Edit, Save, RefreshCw, AlertCircle } from 'lucide-react'
 
 export const OperadorDashboard = () => {
   const { user } = useAuth()
@@ -22,13 +23,9 @@ export const OperadorDashboard = () => {
   const cargarDatos = async () => {
     setLoading(true)
     try {
-      // 1. Cargar Reservas
       const resPromise = supabase.from('reservas').select('*').order('fecha_reserva', { ascending: false })
-      // 2. Cargar Habitaciones (para saber nombres y tipos)
-      const habPromise = supabase.from('habitaciones').select('*')
-      // 3. Cargar Clientes (para saber nombres de huéspedes)
+      const habPromise = supabase.from('habitaciones').select('*').order('numero')
       const cliPromise = supabase.from('usuarios').select('*').eq('rol', 'usuario')
-      // 4. Cargar Consultas
       const consPromise = supabase.from('consultas').select('*').order('fecha_consulta', { ascending: false })
 
       const [resData, habData, cliData, consData] = await Promise.all([
@@ -66,31 +63,31 @@ export const OperadorDashboard = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-4 mb-8 border-b border-slate-200">
+        <div className="flex flex-wrap gap-2 mb-8 border-b border-slate-200 pb-1">
           <button
             onClick={() => setActiveTab('reservas')}
-            className={`px-6 py-3 font-medium transition-colors flex items-center gap-2 ${
+            className={`px-4 py-3 text-sm md:text-base font-medium transition-colors flex items-center gap-2 rounded-t-lg ${
               activeTab === 'reservas'
-                ? 'text-amber-600 border-b-2 border-amber-600'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-amber-600 border-b-2 border-amber-600 shadow-sm'
+                : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
             <Calendar className="h-5 w-5" />
-            Gestión de Reservas
+            Reservas
             <span className="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full ml-2">
               {reservas.filter(r => r.estado === 'activa').length}
             </span>
           </button>
           <button
             onClick={() => setActiveTab('consultas')}
-            className={`px-6 py-3 font-medium transition-colors flex items-center gap-2 ${
+            className={`px-4 py-3 text-sm md:text-base font-medium transition-colors flex items-center gap-2 rounded-t-lg ${
               activeTab === 'consultas'
-                ? 'text-amber-600 border-b-2 border-amber-600'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-white text-amber-600 border-b-2 border-amber-600 shadow-sm'
+                : 'text-slate-600 hover:bg-slate-100'
             }`}
           >
             <MessageSquare className="h-5 w-5" />
-            Bandeja de Consultas
+            Consultas
             {consultas.filter(c => c.estado === 'pendiente').length > 0 && (
               <span className="bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded-full ml-2 animate-pulse">
                 {consultas.filter(c => c.estado === 'pendiente').length}
@@ -122,7 +119,7 @@ export const OperadorDashboard = () => {
 }
 
 // ------------------------------------------------------------------
-// COMPONENTE: LISTA DE RESERVAS (MEJORADO)
+// LISTA DE RESERVAS (CON EDICIÓN Y RESPONSIVE ARREGLADO)
 // ------------------------------------------------------------------
 const ListaReservas = ({ 
   reservas, 
@@ -135,198 +132,132 @@ const ListaReservas = ({
   clientes: Usuario[], 
   onRecargar: () => void 
 }) => {
-  
+  // Estado para el modal de edición
+  const [showModal, setShowModal] = useState(false)
+  const [reservaAEditar, setReservaAEditar] = useState<Reserva | null>(null)
+
   const handleEstado = async (id: string, nuevoEstado: string) => {
     const accion = nuevoEstado === 'completada' ? 'finalizar (check-out)' : 'cancelar';
     if (!confirm(`¿Estás seguro de que deseas ${accion} esta reserva?`)) return
 
     try {
-      await supabase
-        .from('reservas')
-        .update({ estado: nuevoEstado })
-        .eq('id', id)
-      
-      // Si se cancela o completa, liberamos la habitación (opcional, depende de tu lógica de fechas)
-      // En este modelo simple, cambiamos el estado de la reserva y listo.
-      
+      await supabase.from('reservas').update({ estado: nuevoEstado }).eq('id', id)
       onRecargar()
     } catch (error) {
       console.error('Error actualizando reserva:', error)
     }
   }
 
-  return (
-    <div className="grid md:grid-cols-2 gap-6">
-      {reservas.map((reserva) => {
-        // Buscamos los datos reales relacionando los IDs
-        const cliente = clientes.find(c => c.id === reserva.usuario_id)
-        const habitacion = habitaciones.find(h => h.id === reserva.habitacion_id)
-
-        return (
-          <div key={reserva.id} className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex items-center gap-3">
-                <div className="bg-slate-100 p-2 rounded-full">
-                  <UserIcon className="h-6 w-6 text-slate-500" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-lg text-slate-900">
-                    {cliente ? cliente.nombre : 'Cliente Desconocido'}
-                  </h3>
-                  <p className="text-sm text-slate-500">
-                    {cliente ? cliente.email : 'Email no disponible'}
-                  </p>
-                </div>
-              </div>
-              
-              <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${
-                reserva.estado === 'activa' ? 'bg-green-100 text-green-700' :
-                reserva.estado === 'completada' ? 'bg-blue-100 text-blue-700' :
-                'bg-red-100 text-red-700'
-              }`}>
-                {reserva.estado}
-              </span>
-            </div>
-
-            <div className="bg-slate-50 rounded-lg p-4 mb-4 space-y-2">
-              <div className="flex items-center gap-2 text-slate-700">
-                <Bed className="h-4 w-4 text-amber-600" />
-                <span className="font-medium">
-                  {habitacion ? `Habitación ${habitacion.numero} - ${habitacion.tipo}` : 'Habitación no encontrada'}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-slate-600 text-sm">
-                <Calendar className="h-4 w-4" />
-                <span>
-                  {new Date(reserva.fecha_entrada).toLocaleDateString('es-ES')} 
-                  {' ➔ '} 
-                  {new Date(reserva.fecha_salida).toLocaleDateString('es-ES')}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 text-slate-600 text-sm">
-                <Users className="h-4 w-4" />
-                <span>{reserva.num_huespedes} huéspedes</span>
-              </div>
-              <div className="pt-2 mt-2 border-t border-slate-200 flex justify-between items-center">
-                <span className="text-sm text-slate-500">Total a pagar:</span>
-                <span className="text-lg font-bold text-amber-600">${reserva.total.toLocaleString('es-ES')}</span>
-              </div>
-            </div>
-
-            {/* Botones de Acción */}
-            {reserva.estado === 'activa' && (
-              <div className="flex gap-3">
-                <button
-                  onClick={() => handleEstado(reserva.id, 'completada')}
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
-                >
-                  <CheckCircle className="h-4 w-4" />
-                  Check-out
-                </button>
-                <button
-                  onClick={() => handleEstado(reserva.id, 'cancelada')}
-                  className="flex-1 bg-white border border-red-200 text-red-600 hover:bg-red-50 py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors"
-                >
-                  <XCircle className="h-4 w-4" />
-                  Cancelar
-                </button>
-              </div>
-            )}
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-// ------------------------------------------------------------------
-// COMPONENTE: LISTA DE CONSULTAS (CON MODAL DE RESPUESTA)
-// ------------------------------------------------------------------
-const ListaConsultas = ({ 
-  consultas, 
-  clientes, 
-  onRecargar 
-}: { 
-  consultas: any[], 
-  clientes: Usuario[], 
-  onRecargar: () => void 
-}) => {
-  const [consultaSeleccionada, setConsultaSeleccionada] = useState<any | null>(null)
+  const handleEditar = (reserva: Reserva) => {
+    setReservaAEditar(reserva)
+    setShowModal(true)
+  }
 
   return (
     <>
-      <div className="space-y-4">
-        {consultas.length === 0 && (
-          <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
-            <Mail className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500">No hay consultas pendientes.</p>
-          </div>
-        )}
-        
-        {consultas.map((consulta) => {
-          const cliente = clientes.find(c => c.id === consulta.usuario_id)
-          const esSolicitudCambio = consulta.asunto.toLowerCase().includes('solicitud') || consulta.asunto.toLowerCase().includes('cambio');
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {reservas.map((reserva) => {
+          const cliente = clientes.find(c => c.id === reserva.usuario_id)
+          const habitacion = habitaciones.find(h => h.id === reserva.habitacion_id)
 
           return (
-            <div 
-              key={consulta.id} 
-              // Hacemos que toda la tarjeta sea clickeable para abrir el modal
-              onClick={() => setConsultaSeleccionada(consulta)}
-              className={`bg-white p-6 rounded-xl border transition-all cursor-pointer hover:shadow-md group ${
-                consulta.estado === 'pendiente' 
-                  ? 'border-l-4 border-l-amber-500 border-y-slate-200 border-r-slate-200' 
-                  : 'border-slate-200 opacity-75 hover:opacity-100'
-              }`}
-            >
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-bold text-lg text-slate-900 group-hover:text-blue-600 transition-colors">
-                      {consulta.asunto}
-                    </h3>
-                    {esSolicitudCambio && (
-                      <span className="bg-purple-100 text-purple-700 text-[10px] px-2 py-0.5 rounded-full uppercase font-bold">
-                        Solicitud
-                      </span>
-                    )}
+            <div key={reserva.id} className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 hover:shadow-md transition-shadow overflow-hidden">
+              
+              {/* Header de la tarjeta - Responsive: Columna en móvil, Fila en PC */}
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
+                <div className="flex items-start gap-3 overflow-hidden">
+                  <div className="bg-slate-100 p-2 rounded-full flex-shrink-0">
+                    <UserIcon className="h-6 w-6 text-slate-500" />
                   </div>
-                  <p className="text-sm text-slate-500">
-                    De: {cliente ? cliente.nombre : 'Usuario'} • {new Date(consulta.fecha_consulta).toLocaleString('es-ES')}
-                  </p>
+                  <div className="min-w-0"> {/* min-w-0 permite que el truncate funcione en flex children */}
+                    <h3 className="font-bold text-lg text-slate-900 truncate">
+                      {cliente ? cliente.nombre : 'Cliente Desconocido'}
+                    </h3>
+                    <p className="text-sm text-slate-500 truncate">
+                      {cliente ? cliente.email : 'Email no disponible'}
+                    </p>
+                  </div>
                 </div>
                 
-                {consulta.estado === 'pendiente' ? (
-                  <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-bold flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> Pendiente
-                  </span>
-                ) : (
-                  <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-bold flex items-center gap-1">
-                    <CheckCircle className="h-3 w-3" /> Respondida
-                  </span>
-                )}
+                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide self-start sm:self-auto ${
+                  reserva.estado === 'activa' ? 'bg-green-100 text-green-700' :
+                  reserva.estado === 'completada' ? 'bg-blue-100 text-blue-700' :
+                  'bg-red-100 text-red-700'
+                }`}>
+                  {reserva.estado}
+                </span>
               </div>
 
-              <p className="text-slate-700 line-clamp-2 mb-2">
-                {consulta.mensaje}
-              </p>
-
-              <div className="text-sm text-blue-600 font-medium flex items-center gap-1 group-hover:underline">
-                <MessageSquare className="h-4 w-4" />
-                {consulta.estado === 'pendiente' ? 'Clic para responder' : 'Ver detalles'}
+              <div className="bg-slate-50 rounded-lg p-4 mb-4 space-y-3 text-sm">
+                <div className="flex items-center gap-2 text-slate-700">
+                  <Bed className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                  <span className="font-medium truncate">
+                    {habitacion ? `Hab. ${habitacion.numero} - ${habitacion.tipo}` : 'Habitación no encontrada'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-600">
+                  <Calendar className="h-4 w-4 flex-shrink-0" />
+                  <span>
+                    {new Date(reserva.fecha_entrada).toLocaleDateString('es-ES')} 
+                    {' ➔ '} 
+                    {new Date(reserva.fecha_salida).toLocaleDateString('es-ES')}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-600">
+                  <Users className="h-4 w-4 flex-shrink-0" />
+                  <span>{reserva.num_huespedes} huéspedes</span>
+                </div>
+                <div className="pt-2 mt-2 border-t border-slate-200 flex justify-between items-center">
+                  <span className="text-slate-500">Total:</span>
+                  <span className="text-lg font-bold text-amber-600">${reserva.total.toLocaleString('es-ES')}</span>
+                </div>
               </div>
+
+              {/* Botones de Acción - Responsive: Columna en móvil */}
+              {reserva.estado === 'activa' && (
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                   {/* Botón Completar */}
+                  <button
+                    onClick={() => handleEstado(reserva.id, 'completada')}
+                    className="px-3 py-2 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors text-sm"
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    <span className="sm:hidden lg:inline">Check-out</span>
+                  </button>
+
+                   {/* Botón Editar (NUEVO) */}
+                  <button
+                    onClick={() => handleEditar(reserva)}
+                    className="px-3 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors text-sm"
+                  >
+                    <Edit className="h-4 w-4" />
+                    <span className="sm:hidden lg:inline">Editar</span>
+                  </button>
+                  
+                  {/* Botón Cancelar */}
+                  <button
+                    onClick={() => handleEstado(reserva.id, 'cancelada')}
+                    className="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg font-medium flex items-center justify-center gap-2 transition-colors text-sm"
+                  >
+                    <XCircle className="h-4 w-4" />
+                    <span className="sm:hidden lg:inline">Cancelar</span>
+                  </button>
+                </div>
+              )}
             </div>
           )
         })}
       </div>
 
-      {/* MODAL PARA RESPONDER */}
-      {consultaSeleccionada && (
-        <ModalResponderConsulta 
-          consulta={consultaSeleccionada}
-          cliente={clientes.find(c => c.id === consultaSeleccionada.usuario_id)}
-          onClose={() => setConsultaSeleccionada(null)}
-          onSuccess={() => {
-            setConsultaSeleccionada(null)
+      {/* Modal de Edición (Reutilizado) */}
+      {showModal && reservaAEditar && (
+        <ModalEditarReserva
+          reserva={reservaAEditar}
+          habitaciones={habitaciones}
+          clientes={clientes}
+          onClose={() => setShowModal(false)}
+          onSave={() => {
+            setShowModal(false)
             onRecargar()
           }}
         />
@@ -335,111 +266,78 @@ const ListaConsultas = ({
   )
 }
 
-// --- MODAL DE RESPUESTA ---
-const ModalResponderConsulta = ({ 
-  consulta, 
-  cliente, 
-  onClose, 
-  onSuccess 
-}: { 
-  consulta: any, 
-  cliente: Usuario | undefined, 
-  onClose: () => void, 
-  onSuccess: () => void 
-}) => {
-  const [respuesta, setRespuesta] = useState(consulta.respuesta || '')
-  const [loading, setLoading] = useState(false)
-
-  const handleResponder = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    try {
-      await supabase
-        .from('consultas')
-        .update({
-          respuesta: respuesta,
-          estado: 'respondida',
-          fecha_respuesta: new Date().toISOString()
-        })
-        .eq('id', consulta.id)
-      
-      onSuccess()
-    } catch (error) {
-      console.error(error)
-      alert('Error al enviar respuesta')
-    } finally {
-      setLoading(false)
+// ------------------------------------------------------------------
+// MODAL EDITAR RESERVA (Copiado del Admin para el Operador)
+// ------------------------------------------------------------------
+const ModalEditarReserva = ({ reserva, habitaciones, clientes, onClose, onSave }: any) => {
+  const [formData, setFormData] = useState({ habitacion_id: reserva.habitacion_id, fecha_entrada: reserva.fecha_entrada, fecha_salida: reserva.fecha_salida, num_huespedes: reserva.num_huespedes });
+  const [total, setTotal] = useState(reserva.total); const [error, setError] = useState(''); const cliente = clientes.find((c:any) => c.id === reserva.usuario_id);
+  
+  useEffect(() => {
+    const h = habitaciones.find((x:any)=>x.id===formData.habitacion_id);
+    if(h && formData.fecha_entrada && formData.fecha_salida) {
+      const dias = Math.ceil((new Date(formData.fecha_salida + 'T00:00:00').getTime() - new Date(formData.fecha_entrada + 'T00:00:00').getTime())/(1000*60*60*24));
+      setTotal(dias > 0 ? dias * h.precio_noche : 0);
     }
-  }
+  }, [formData, habitaciones]);
+
+  const handleSubmit = async (e:any) => { e.preventDefault(); setError('');
+    try {
+      if(new Date(formData.fecha_salida) <= new Date(formData.fecha_entrada)) throw new Error("Fechas inválidas");
+      const {data} = await supabase.functions.invoke('check-room-availability', { body: {...formData, reserva_id_excluir: reserva.id} });
+      if(!data?.data?.available) throw new Error('No disponible en esas fechas');
+      await supabase.from('reservas').update({...formData, total}).eq('id', reserva.id); onSave();
+    } catch(err:any) { setError(err.message); }
+  };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-      <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
-        
-        {/* Header del Modal */}
-        <div className="p-6 border-b border-slate-100 flex justify-between items-center sticky top-0 bg-white z-10">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900">Responder Consulta</h2>
-            <p className="text-sm text-slate-500">Cliente: {cliente?.nombre || 'Desconocido'} ({cliente?.email})</p>
-          </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-full transition-colors">
-            <X className="h-6 w-6" />
-          </button>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl flex flex-col max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+            <h2 className="font-bold text-xl text-slate-900">Editar Reserva</h2>
+            <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X className="h-6 w-6" /></button>
         </div>
-
-        {/* Contenido */}
-        <div className="p-6 space-y-6">
-          {/* Mensaje Original */}
-          <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-            <h3 className="text-xs font-bold text-slate-500 uppercase mb-2 tracking-wider">Mensaje del Cliente</h3>
-            <p className="text-slate-800 whitespace-pre-wrap">{consulta.mensaje}</p>
-            <p className="text-xs text-slate-400 mt-2 text-right">
-              Enviado el: {new Date(consulta.fecha_consulta).toLocaleString()}
-            </p>
-          </div>
-
-          {/* Formulario de Respuesta */}
-          <form onSubmit={handleResponder}>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-2">
-                Tu Respuesta
-              </label>
-              <textarea
-                value={respuesta}
-                onChange={(e) => setRespuesta(e.target.value)}
-                className="w-full p-4 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none min-h-[150px]"
-                placeholder="Escribe tu respuesta aquí..."
-                readOnly={consulta.estado === 'respondida'} // Si ya está respondida, solo lectura
-                required
-              />
-            </div>
-
-            <div className="flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors"
-              >
-                Cerrar
-              </button>
-              
-              {consulta.estado !== 'respondida' && (
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center gap-2 disabled:opacity-50 transition-colors"
-                >
-                  {loading ? 'Enviando...' : (
-                    <>
-                      <Send className="h-4 w-4" /> Enviar Respuesta
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
-          </form>
-        </div>
+        <p className="text-sm text-slate-500 mb-4">Cliente: {cliente?.nombre || 'Desconocido'}</p>
+        <form onSubmit={handleSubmit} className="space-y-4 flex-1">
+          {error && <p className="text-red-700 bg-red-50 p-3 rounded-lg text-sm flex gap-2"><AlertCircle className="h-4 w-4"/>{error}</p>}
+          <div><label className="block text-sm font-medium text-slate-700 mb-1">Habitación</label><select value={formData.habitacion_id} onChange={e=>setFormData({...formData, habitacion_id:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg">{habitaciones.map((h:any)=><option key={h.id} value={h.id}>{h.numero} - {h.tipo} (${h.precio_noche})</option>)}</select></div>
+          <div className="grid grid-cols-2 gap-2"><div><label className="block text-sm font-medium text-slate-700 mb-1">Entrada</label><input type="date" value={formData.fecha_entrada} onChange={e=>setFormData({...formData, fecha_entrada:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg"/></div><div><label className="block text-sm font-medium text-slate-700 mb-1">Salida</label><input type="date" value={formData.fecha_salida} onChange={e=>setFormData({...formData, fecha_salida:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg"/></div></div>
+          <div className="bg-slate-50 p-3 rounded-lg flex justify-between items-center"><span className="text-sm text-slate-600">Nuevo Total:</span><span className="font-bold text-amber-600 text-lg">${total.toLocaleString('es-ES')}</span></div>
+          <div className="flex gap-3 pt-2"><button type="submit" className="flex-1 bg-amber-600 text-white py-2 rounded-lg hover:bg-amber-700 font-medium">Guardar</button><button type="button" onClick={onClose} className="flex-1 bg-slate-200 text-slate-700 py-2 rounded-lg hover:bg-slate-300 font-medium">Cancelar</button></div>
+        </form>
       </div>
     </div>
+  )
+}
+
+// ------------------------------------------------------------------
+// LISTA DE CONSULTAS (CON RESPUESTA)
+// ------------------------------------------------------------------
+const ListaConsultas = ({ consultas, clientes, onRecargar }: any) => {
+  const [consultaSeleccionada, setConsultaSeleccionada] = useState<any | null>(null)
+  return (
+    <>
+      <div className="space-y-4">
+        {consultas.length === 0 && <div className="text-center py-12 bg-white rounded-xl border border-slate-200"><Mail className="h-12 w-12 text-slate-300 mx-auto mb-3" /><p className="text-slate-500">No hay consultas pendientes.</p></div>}
+        {consultas.map((c:any) => {
+          const cli = clientes.find((u:any) => u.id === c.usuario_id);
+          return (
+            <div key={c.id} onClick={() => setConsultaSeleccionada(c)} className={`bg-white p-6 rounded-xl border cursor-pointer hover:shadow-md ${c.estado==='pendiente'?'border-l-4 border-l-amber-500':'opacity-75'}`}>
+              <div className="flex justify-between mb-2"><div><h3 className="font-bold text-slate-900">{c.asunto}</h3><p className="text-sm text-slate-500">De: {cli?.nombre}</p></div>{c.estado==='pendiente'?<span className="bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded flex items-center gap-1"><Clock className="h-3 w-3"/>Pendiente</span>:<span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded flex items-center gap-1"><CheckCircle className="h-3 w-3"/>Respondida</span>}</div>
+              <p className="text-slate-700 line-clamp-2">{c.mensaje}</p>
+            </div>
+          )
+        })}
+      </div>
+      {consultaSeleccionada && <ModalResponderConsulta consulta={consultaSeleccionada} cliente={clientes.find((c:any) => c.id === consultaSeleccionada.usuario_id)} onClose={() => setConsultaSeleccionada(null)} onSuccess={() => { setConsultaSeleccionada(null); onRecargar() }} />}
+    </>
+  )
+}
+
+const ModalResponderConsulta = ({ consulta, cliente, onClose, onSuccess }: any) => {
+  const [respuesta, setRespuesta] = useState(consulta.respuesta || ''); const [loading, setLoading] = useState(false);
+  const handleResponder = async (e:any) => { e.preventDefault(); setLoading(true); try { await supabase.from('consultas').update({ respuesta, estado: 'respondida', fecha_respuesta: new Date().toISOString() }).eq('id', consulta.id); onSuccess(); } catch(e) { console.error(e) } finally { setLoading(false) } };
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"><div className="bg-white p-6 rounded-xl w-full max-w-lg shadow-2xl"><div className="flex justify-between mb-4"><h2 className="font-bold text-xl">Responder</h2><button onClick={onClose}><X className="h-5 w-5 text-slate-400"/></button></div><div className="bg-slate-50 p-4 rounded mb-4"><p className="text-slate-800">{consulta.mensaje}</p></div><form onSubmit={handleResponder}><textarea className="w-full border p-3 rounded h-32" placeholder="Respuesta..." value={respuesta} onChange={e=>setRespuesta(e.target.value)} required readOnly={consulta.estado==='respondida'}/><div className="flex justify-end gap-2 mt-4"><button type="button" onClick={onClose} className="px-4 py-2 bg-slate-100 rounded">Cerrar</button>{consulta.estado!=='respondida' && <button disabled={loading} className="px-4 py-2 bg-blue-600 text-white rounded flex items-center gap-2"><Send className="h-4 w-4"/>Enviar</button>}</div></form></div></div>
   )
 }
