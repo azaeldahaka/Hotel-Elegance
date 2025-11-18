@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Habitacion, Servicio, Reserva } from '@/types'
-import { Calendar, Users, Clock, CheckCircle, XCircle, Mail, Edit, AlertCircle, Send, RefreshCw } from 'lucide-react'
+import { Calendar, Users, Clock, CheckCircle, XCircle, Mail, Edit, AlertCircle, Send, RefreshCw, Info, X } from 'lucide-react' 
 import { useNavigate } from 'react-router-dom'
 
 export const UsuarioDashboard = () => {
@@ -11,14 +11,14 @@ export const UsuarioDashboard = () => {
   const [habitaciones, setHabitaciones] = useState<Habitacion[]>([])
   const [servicios, setServicios] = useState<Servicio[]>([])
   const [reservas, setReservas] = useState<Reserva[]>([])
-  // --- NUEVO: Estado para guardar consultas ---
-  const [consultas, setConsultas] = useState<any[]>([])
-  
+  const [consultas, setConsultas] = useState<any[]>([]) // Guardamos todas para verificar estados
   const [loading, setLoading] = useState(true)
 
-  // Estado para el modal de solicitud
-  const [showModal, setShowModal] = useState(false)
+  // Estado para modales
+  const [showModalReserva, setShowModalReserva] = useState(false)
   const [reservaAEditar, setReservaAEditar] = useState<Reserva | null>(null)
+  const [showModalServicio, setShowModalServicio] = useState(false)
+  const [servicioSeleccionado, setServicioSeleccionado] = useState<Servicio | null>(null)
 
   useEffect(() => {
     if (user) {
@@ -32,15 +32,11 @@ export const UsuarioDashboard = () => {
       const habPromise = supabase.from('habitaciones').select('*').order('numero')
       const servPromise = supabase.from('servicios').select('*').eq('disponible', true)
       const resPromise = supabase.from('reservas').select('*').eq('usuario_id', user?.id).order('fecha_reserva', { ascending: false })
-      
-      // --- NUEVO: Cargamos también las consultas para verificar pendientes ---
-      const consPromise = supabase.from('consultas').select('*').eq('usuario_id', user?.id).eq('estado', 'pendiente')
+      // Cargamos TODAS las consultas del usuario para saber el historial (pendientes y aprobadas)
+      const consPromise = supabase.from('consultas').select('*').eq('usuario_id', user?.id)
 
       const [habData, servData, resData, consData] = await Promise.all([
-        habPromise,
-        servPromise,
-        resPromise,
-        consPromise
+        habPromise, servPromise, resPromise, consPromise
       ])
 
       setHabitaciones(habData.data || [])
@@ -57,13 +53,17 @@ export const UsuarioDashboard = () => {
 
   const handleAbrirSolicitud = (reserva: Reserva) => {
     setReservaAEditar(reserva)
-    setShowModal(true)
+    setShowModalReserva(true)
   }
   
-  // Callback para recargar todo cuando se envía una solicitud
   const handleSolicitudEnviada = () => {
-    setShowModal(false)
-    cargarDatos() // Recarga para que aparezca el cartel de "Pendiente"
+    setShowModalReserva(false)
+    cargarDatos() // Recargar para actualizar badges
+  }
+
+  const handleVerServicio = (servicio: Servicio) => {
+    setServicioSeleccionado(servicio)
+    setShowModalServicio(true)
   }
 
   if (loading) {
@@ -76,6 +76,9 @@ export const UsuarioDashboard = () => {
       </div>
     )
   }
+
+  // Contamos solo las pendientes para el badge del botón de mail
+  const consultasPendientesCount = consultas.filter(c => c.estado === 'pendiente').length;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -94,10 +97,9 @@ export const UsuarioDashboard = () => {
           >
             <Mail className="h-5 w-5" />
             Mis Consultas
-            {/* Badge si hay consultas pendientes */}
-            {consultas.length > 0 && (
+            {consultasPendientesCount > 0 && (
               <span className="bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
-                {consultas.length}
+                {consultasPendientesCount}
               </span>
             )}
           </button>
@@ -118,7 +120,7 @@ export const UsuarioDashboard = () => {
                   key={reserva.id} 
                   reserva={reserva} 
                   habitaciones={habitaciones}
-                  consultasPendientes={consultas} // <-- Pasamos las consultas
+                  consultas={consultas}
                   onSolicitarCambio={() => handleAbrirSolicitud(reserva)}
                 />
               ))}
@@ -147,44 +149,66 @@ export const UsuarioDashboard = () => {
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {servicios.map((servicio) => (
-              <ServicioCard key={servicio.id} servicio={servicio} />
+              <ServicioCard 
+                key={servicio.id} 
+                servicio={servicio} 
+                onClick={() => handleVerServicio(servicio)}
+              />
             ))}
           </div>
         </section>
       </div>
 
       {/* Modal de Solicitud de Cambio */}
-      {showModal && reservaAEditar && (
+      {showModalReserva && reservaAEditar && (
         <ModalSolicitarCambio
           reserva={reservaAEditar}
           habitaciones={habitaciones}
-          onClose={() => setShowModal(false)}
-          onSuccess={handleSolicitudEnviada} // <-- Nuevo callback
+          onClose={() => setShowModalReserva(false)}
+          onSuccess={handleSolicitudEnviada}
           user_id={user?.id}
+        />
+      )}
+
+      {/* Modal de Detalle de Servicio */}
+      {showModalServicio && servicioSeleccionado && (
+        <ModalDetalleServicio 
+          servicio={servicioSeleccionado} 
+          onClose={() => setShowModalServicio(false)} 
         />
       )}
     </div>
   )
 }
 
-// --- TARJETA DE RESERVA ACTUALIZADA ---
+// --- COMPONENTE RESERVACARD (CON LÓGICA DE BADGES) ---
 const ReservaCard = ({ 
   reserva, 
   habitaciones,
-  consultasPendientes, // <-- Recibimos las consultas
+  consultas,
   onSolicitarCambio 
 }: { 
   reserva: Reserva, 
   habitaciones: Habitacion[],
-  consultasPendientes: any[],
+  consultas: any[],
   onSolicitarCambio: () => void
 }) => {
+  
   const habitacionInfo = habitaciones.find(h => h.id === reserva.habitacion_id);
 
-  // --- LÓGICA CLAVE: ¿Tiene cambio pendiente? ---
-  // Buscamos si hay alguna consulta pendiente cuyo mensaje contenga el ID de esta reserva
-  const tieneCambioPendiente = consultasPendientes.some(c => 
-    c.asunto.includes(reserva.id.slice(0,8)) || c.mensaje.includes(reserva.id)
+  // --- LÓGICA INTELIGENTE DE ESTADOS ---
+  
+  // 1. ¿Tiene un cambio PENDIENTE?
+  const tieneCambioPendiente = consultas.some(c => 
+    c.estado === 'pendiente' && 
+    (c.asunto.includes(reserva.id.slice(0,8)) || c.mensaje.includes(reserva.id))
+  );
+
+  // 2. ¿Tuvo un cambio APROBADO? (El operador aceptó)
+  const cambioAprobado = consultas.some(c => 
+    c.estado === 'respondida' &&
+    (c.asunto.includes(reserva.id.slice(0,8)) || c.mensaje.includes(reserva.id)) &&
+    (c.respuesta && c.respuesta.includes('APROBADA'))
   );
 
   const getEstadoColor = (estado: string) => {
@@ -209,14 +233,16 @@ const ReservaCard = ({
     <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div className="flex-1">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="font-semibold text-slate-900 text-lg">
-            {habitacionInfo 
-              ? `Habitación ${habitacionInfo.numero} (${habitacionInfo.tipo})`
-              : `Reserva #${reserva.id.slice(0, 8)}`
-            }
-          </h3>
+          <div>
+            <h3 className="font-semibold text-slate-900 text-lg">
+              {habitacionInfo 
+                ? `Habitación ${habitacionInfo.numero} (${habitacionInfo.tipo})`
+                : `Reserva #${reserva.id.slice(0, 8)}`
+              }
+            </h3>
+            <p className="text-[10px] text-slate-400 uppercase font-mono">ID: {reserva.id.slice(0, 8)}</p>
+          </div>
           
-          {/* Badge de estado normal */}
           <span className={`px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 ${getEstadoColor(reserva.estado)} md:hidden`}>
             {getEstadoIcon(reserva.estado)}
             <span className="capitalize">{reserva.estado}</span>
@@ -243,14 +269,20 @@ const ReservaCard = ({
           <span className="capitalize">{reserva.estado}</span>
         </span>
         
-        {/* --- AQUÍ ESTÁ EL CAMBIO VISUAL --- */}
+        {/* --- BADGES O BOTONES SEGÚN ESTADO DE CAMBIO --- */}
         {tieneCambioPendiente ? (
           <div className="flex items-center gap-2 px-4 py-2 bg-yellow-50 text-yellow-700 rounded-lg border border-yellow-200 w-full md:w-auto justify-center">
             <RefreshCw className="h-4 w-4 animate-spin-slow" />
             <span className="font-medium text-sm">Cambio Solicitado</span>
           </div>
+        ) : cambioAprobado ? (
+          // SI EL CAMBIO FUE REALIZADO
+          <div className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg border border-green-200 w-full md:w-auto justify-center">
+            <CheckCircle className="h-4 w-4" /> 
+            <span className="font-medium text-sm">Cambio Realizado</span>
+          </div>
         ) : (
-          // Solo mostramos el botón si NO hay cambios pendientes Y está activa
+          // SI NO HAY NADA PENDIENTE NI APROBADO, MUESTRA EL BOTÓN DE SOLICITAR
           reserva.estado === 'activa' && (
             <button
               onClick={onSolicitarCambio}
@@ -266,11 +298,12 @@ const ReservaCard = ({
   )
 }
 
+// --- MODAL SOLICITAR CAMBIO (ESTRUCTURADO) ---
 const ModalSolicitarCambio = ({
   reserva,
   habitaciones,
   onClose,
-  onSuccess, // <-- Nuevo prop
+  onSuccess,
   user_id
 }: {
   reserva: Reserva
@@ -285,15 +318,12 @@ const ModalSolicitarCambio = ({
     fecha_salida: reserva.fecha_salida,
   });
   
-  // Estado para el filtro de tipo
   const habActual = habitaciones.find(h => h.id === reserva.habitacion_id);
   const [selectedTipo, setSelectedTipo] = useState(habActual?.tipo || '');
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   
-  // Cálculo de precios
   const [nuevoTotal, setNuevoTotal] = useState(reserva.total);
   const [diferencia, setDiferencia] = useState(0);
 
@@ -316,16 +346,11 @@ const ModalSolicitarCambio = ({
           setDiferencia(totalCalc - reserva.total);
         }
       }
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
   }, [formData, habitaciones, reserva.total]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleTipoChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -352,7 +377,7 @@ const ModalSolicitarCambio = ({
           habitacion_id: formData.habitacion_id,
           fecha_entrada: formData.fecha_entrada,
           fecha_salida: formData.fecha_salida,
-          reserva_id_excluir: reserva.id 
+          reserva_id_excluir: reserva.id
         }
       });
 
@@ -365,27 +390,32 @@ const ModalSolicitarCambio = ({
       const habOriginal = habitaciones.find(h => h.id === reserva.habitacion_id);
       const habNueva = habitaciones.find(h => h.id === formData.habitacion_id);
       
-      const mensaje = `
-SOLICITUD DE MODIFICACIÓN DE RESERVA
------------------------------------
-Reserva Original: #${reserva.id.slice(0,8)}
-Habitación: ${habOriginal?.numero} (${habOriginal?.tipo})
-Fechas: ${new Date(reserva.fecha_entrada).toLocaleDateString()} - ${new Date(reserva.fecha_salida).toLocaleDateString()}
-Total Actual: $${reserva.total}
-
-NUEVA SOLICITUD:
-Tipo Solicitado: ${selectedTipo} (Asignada temp: ${habNueva?.numero})
-Fechas: ${new Date(formData.fecha_entrada).toLocaleDateString()} - ${new Date(formData.fecha_salida).toLocaleDateString()}
-Nuevo Total: $${nuevoTotal}
-Diferencia a pagar: $${diferencia}
-
-Por favor, confirmen si puedo proceder con el cambio.
-      `.trim();
+      // CREAMOS EL JSON ESTRUCTURADO PARA EL ADMIN
+      const mensajeStruct = JSON.stringify({
+        type: 'SOLICITUD_CAMBIO_ESTRUCTURADA',
+        reservaId: reserva.id,
+        original: {
+          habNumero: habOriginal?.numero,
+          habTipo: habOriginal?.tipo,
+          entrada: reserva.fecha_entrada,
+          salida: reserva.fecha_salida,
+          total: reserva.total
+        },
+        nuevo: {
+          habitacion_id: habNueva?.id,
+          habNumero: habNueva?.numero,
+          habTipo: habNueva?.tipo,
+          entrada: formData.fecha_entrada,
+          salida: formData.fecha_salida,
+          total: nuevoTotal,
+          diferencia: diferencia
+        }
+      });
 
       await supabase.from('consultas').insert([{
         usuario_id: user_id,
         asunto: `Solicitud Cambio - Reserva #${reserva.id.slice(0,8)}`,
-        mensaje: mensaje,
+        mensaje: mensajeStruct,
         estado: 'pendiente',
         fecha_consulta: new Date().toISOString()
       }]);
@@ -406,7 +436,7 @@ Por favor, confirmen si puedo proceder con el cambio.
           <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-slate-900 mb-2">¡Solicitud Enviada!</h2>
           <p className="text-slate-600 mb-6">
-            Hemos verificado la disponibilidad y enviado tu solicitud. Podés ver el estado o cancelarla en "Mis Consultas".
+            El operador revisará tu solicitud. Si se aprueba, verás el estado actualizado.
           </p>
           <button onClick={onSuccess} className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium">
             Entendido
@@ -420,84 +450,21 @@ Por favor, confirmen si puedo proceder con el cambio.
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-xl p-6 max-w-xl w-full">
         <h2 className="text-xl font-bold mb-6">Solicitar Cambio de Reserva</h2>
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg flex items-center gap-2">
-            <AlertCircle className="h-5 w-5" />
-            {error}
-          </div>
-        )}
+        {error && <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-lg flex items-center gap-2"><AlertCircle className="h-5 w-5" />{error}</div>}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Nueva Entrada</label>
-              <input
-                type="date"
-                name="fecha_entrada"
-                value={new Date(formData.fecha_entrada).toISOString().split('T')[0]}
-                onChange={handleChange}
-                min={new Date().toISOString().split('T')[0]}
-                className="w-full px-3 py-2 border rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Nueva Salida</label>
-              <input
-                type="date"
-                name="fecha_salida"
-                value={new Date(formData.fecha_salida).toISOString().split('T')[0]}
-                onChange={handleChange}
-                min={formData.fecha_entrada}
-                className="w-full px-3 py-2 border rounded-lg"
-              />
-            </div>
+            <div><label className="block text-sm font-medium text-slate-700 mb-1">Nueva Entrada</label><input type="date" name="fecha_entrada" value={new Date(formData.fecha_entrada).toISOString().split('T')[0]} onChange={handleChange} min={new Date().toISOString().split('T')[0]} className="w-full px-3 py-2 border rounded-lg" /></div>
+            <div><label className="block text-sm font-medium text-slate-700 mb-1">Nueva Salida</label><input type="date" name="fecha_salida" value={new Date(formData.fecha_salida).toISOString().split('T')[0]} onChange={handleChange} min={formData.fecha_entrada} className="w-full px-3 py-2 border rounded-lg" /></div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Tipo de Habitación Deseada
-            </label>
-            <select
-              value={selectedTipo}
-              onChange={handleTipoChange}
-              className="w-full px-3 py-2 border rounded-lg bg-slate-50 font-medium"
-            >
-              {habitaciones.map(h => h.tipo).filter((v, i, a) => a.indexOf(v) === i).map(tipo => (
-                <option key={tipo} value={tipo}>{tipo}</option>
-              ))}
-            </select>
-          </div>
-          <div className="hidden">
-             {/* Select oculto pero funcional para la logica */}
-            <select name="habitacion_id" value={formData.habitacion_id} onChange={handleChange}>
-              {habitacionesFiltradas.map(h => <option key={h.id} value={h.id}>{h.numero}</option>)}
-            </select>
-          </div>
+          <div><label className="block text-sm font-medium text-slate-700 mb-1">Tipo de Habitación</label><select value={selectedTipo} onChange={handleTipoChange} className="w-full px-3 py-2 border rounded-lg bg-slate-50 font-medium">{tiposDisponibles.map(tipo => (<option key={tipo} value={tipo}>{tipo}</option>))}</select></div>
+          <div className="hidden"><select name="habitacion_id" value={formData.habitacion_id} onChange={handleChange}>{habitacionesFiltradas.map(h => <option key={h.id} value={h.id}>{h.numero}</option>)}</select></div>
           <div className="bg-slate-50 p-4 rounded-lg space-y-2 border border-slate-200">
-            <div className="flex justify-between text-sm">
-              <span>Nuevo Total Estimado:</span>
-              <span className="font-bold">${nuevoTotal.toLocaleString('es-ES')}</span>
-            </div>
-            <div className={`flex justify-between font-bold ${diferencia > 0 ? 'text-red-600' : 'text-green-600'}`}>
-              <span>{diferencia > 0 ? 'Diferencia a Pagar:' : 'A favor:'}</span>
-              <span>${Math.abs(diferencia).toLocaleString('es-ES')}</span>
-            </div>
+            <div className="flex justify-between text-sm"><span>Nuevo Total Estimado:</span><span className="font-bold">${nuevoTotal.toLocaleString('es-ES')}</span></div>
+            <div className={`flex justify-between font-bold ${diferencia > 0 ? 'text-red-600' : 'text-green-600'}`}><span>{diferencia > 0 ? 'Diferencia a Pagar:' : 'A favor:'}</span><span>${Math.abs(diferencia).toLocaleString('es-ES')}</span></div>
           </div>
           <div className="flex gap-3 pt-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {loading ? <div className="animate-spin h-4 w-4 border-2 border-white rounded-full border-t-transparent"/> : <Send className="h-4 w-4" />}
-              Enviar Solicitud
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium"
-            >
-              Cancelar
-            </button>
+            <button type="submit" disabled={loading} className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium flex items-center justify-center gap-2 disabled:opacity-50">{loading ? <div className="animate-spin h-4 w-4 border-2 border-white rounded-full border-t-transparent"/> : <Send className="h-4 w-4" />} Enviar Solicitud</button>
+            <button type="button" onClick={onClose} disabled={loading} className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium">Cancelar</button>
           </div>
         </form>
       </div>
@@ -505,114 +472,28 @@ Por favor, confirmen si puedo proceder con el cambio.
   )
 }
 
-const HabitacionCard = ({ habitacion, navigate }: { habitacion: Habitacion, navigate: any }) => {
-  // ... (Este componente queda igual que antes, solo copialo del anterior si lo necesitas, pero ya está incluido si copias todo)
-  // Por brevedad, asumo que está ok, pero asegurate de que esté presente.
-  // Lo incluyo completo para que sea copiar y pegar.
-  const imageMap: Record<string, string> = {
-    'Simple': '/images/rooms/room-1.jpg',
-    'Doble': '/images/rooms/room-2.jpg',
-    'Suite': '/images/rooms/suite.jpg',
-    'Suite Deluxe': '/images/rooms/suite.jpg',
-    'Familiar': '/images/rooms/room-2.jpg',
-    'Premium': '/images/rooms/suite.jpg',
-  }
-
+// --- MODAL DETALLE DE SERVICIO ---
+const ModalDetalleServicio = ({ servicio, onClose }: { servicio: Servicio, onClose: () => void }) => {
+  const imageMap: Record<string, string> = { 'Spa & Wellness': '/images/services/spa.jpg', 'Restaurante Gourmet': '/images/services/restaurant.jpg', 'Gimnasio Premium': '/images/services/gym.jpg', 'Piscina Infinita': '/images/services/pool.jpg' }
+  const imgSrc = servicio.imagen_url || imageMap[servicio.nombre] || '/images/services/spa.jpg';
   return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
-      <div className="relative h-48">
-        <img
-          src={imageMap[habitacion.tipo] || '/images/rooms/room-1.jpg'}
-          alt={habitacion.tipo}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full shadow-lg">
-          <span className="font-semibold text-slate-900">{habitacion.numero}</span>
-        </div>
-      </div>
-      <div className="p-6">
-        <h3 className="text-xl font-serif font-bold text-slate-900 mb-2">
-          {habitacion.tipo}
-        </h3>
-        <p className="text-slate-600 text-sm mb-4">
-          {habitacion.descripcion}
-        </p>
-        <div className="flex items-center gap-2 mb-4">
-          <Users className="h-4 w-4 text-slate-400" />
-          <span className="text-sm text-slate-600">Capacidad: {habitacion.capacidad} personas</span>
-        </div>
-        {habitacion.amenidades && habitacion.amenidades.length > 0 && (
-          <div className="mb-4">
-            <div className="flex flex-wrap gap-1">
-              {habitacion.amenidades.slice(0, 3).map((amenidad, idx) => (
-                <span key={idx} className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">
-                  {amenidad}
-                </span>
-              ))}
-              {habitacion.amenidades.length > 3 && (
-                <span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">
-                  +{habitacion.amenidades.length - 3} más
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-        <div className="flex justify-between items-center">
-          <div>
-            <p className="text-2xl font-bold text-amber-600">
-              ${habitacion.precio_noche?.toLocaleString('es-ES')}
-            </p>
-            <p className="text-xs text-slate-500">por noche</p>
-          </div>
-          <button 
-            onClick={() => navigate(`/usuario/reservar/${habitacion.id}`)}
-            className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg font-medium transition-all"
-          >
-            Reservar
-          </button>
-        </div>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl overflow-hidden max-w-lg w-full shadow-2xl relative animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute top-4 right-4 bg-black/20 hover:bg-black/40 text-white p-2 rounded-full transition-colors z-10"><X className="h-5 w-5" /></button>
+        <div className="h-64 relative"><img src={imgSrc} alt={servicio.nombre} className="w-full h-full object-cover" /><div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" /><div className="absolute bottom-0 left-0 p-6"><h2 className="text-3xl font-serif font-bold text-white">{servicio.nombre}</h2></div></div>
+        <div className="p-8"><div className="prose prose-slate mb-6"><p className="text-lg text-slate-600 leading-relaxed">{servicio.descripcion}</p></div><div className="flex items-center justify-between pt-6 border-t border-slate-100"><div><span className="block text-sm text-slate-500 uppercase tracking-wider font-semibold">Precio</span>{servicio.precio && servicio.precio > 0 ? (<span className="text-2xl font-bold text-amber-600">${servicio.precio.toLocaleString('es-ES')}</span>) : (<span className="text-2xl font-bold text-green-600">Incluido</span>)}</div><button onClick={onClose} className="px-6 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-medium transition-colors">Cerrar</button></div></div>
       </div>
     </div>
   )
 }
 
-const ServicioCard = ({ servicio }: { servicio: Servicio }) => {
-  const imageMap: Record<string, string> = {
-    'Spa & Wellness': '/images/services/spa.jpg',
-    'Restaurante Gourmet': '/images/services/restaurant.jpg',
-    'Gimnasio Premium': '/images/services/gym.jpg',
-    'Piscina Infinita': '/images/services/pool.jpg',
-  }
+// --- COMPONENTES VISUALES (HABITACIÓN Y SERVICIO) ---
+const HabitacionCard = ({ habitacion, navigate }: { habitacion: Habitacion, navigate: any }) => {
+  const imageMap: Record<string, string> = { 'Simple': '/images/rooms/room-1.jpg', 'Doble': '/images/rooms/room-2.jpg', 'Suite': '/images/rooms/suite.jpg', 'Suite Deluxe': '/images/rooms/suite.jpg', 'Familiar': '/images/rooms/room-2.jpg', 'Premium': '/images/rooms/suite.jpg', }
+  return ( <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow"><div className="relative h-48"><img src={imageMap[habitacion.tipo] || '/images/rooms/room-1.jpg'} alt={habitacion.tipo} className="w-full h-full object-cover"/><div className="absolute top-4 right-4 bg-white px-3 py-1 rounded-full shadow-lg"><span className="font-semibold text-slate-900">{habitacion.numero}</span></div></div><div className="p-6"><h3 className="text-xl font-serif font-bold text-slate-900 mb-2">{habitacion.tipo}</h3><p className="text-slate-600 text-sm mb-4">{habitacion.descripcion}</p><div className="flex items-center gap-2 mb-4"><Users className="h-4 w-4 text-slate-400" /><span className="text-sm text-slate-600">Capacidad: {habitacion.capacidad} personas</span></div>{habitacion.amenidades && habitacion.amenidades.length > 0 && (<div className="mb-4"><div className="flex flex-wrap gap-1">{habitacion.amenidades.slice(0, 3).map((amenidad, idx) => (<span key={idx} className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">{amenidad}</span>))}{habitacion.amenidades.length > 3 && (<span className="text-xs bg-slate-100 text-slate-600 px-2 py-1 rounded">+{habitacion.amenidades.length - 3} más</span>)}</div></div>)}<div className="flex justify-between items-center"><div><p className="text-2xl font-bold text-amber-600">${habitacion.precio_noche?.toLocaleString('es-ES')}</p><p className="text-xs text-slate-500">por noche</p></div><button onClick={() => navigate(`/usuario/reservar/${habitacion.id}`)} className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-lg font-medium transition-all">Reservar</button></div></div></div> )
+}
 
-  return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow">
-      <div className="relative h-48">
-        <img
-          src={imageMap[servicio.nombre] || '/images/services/spa.jpg'}
-          alt={servicio.nombre}
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div className="p-6">
-        <h3 className="text-xl font-serif font-bold text-slate-900 mb-2">
-          {servicio.nombre}
-        </h3>
-        <p className="text-slate-600 text-sm mb-4">
-          {servicio.descripcion}
-        </p>
-        <div className="flex justify-between items-center">
-          {servicio.precio && servicio.precio > 0 ? (
-            <p className="text-xl font-bold text-amber-600">
-              ${servicio.precio.toLocaleString('es-ES')}
-            </p>
-          ) : (
-            <p className="text-sm text-green-600 font-semibold">Incluido</p>
-          )}
-          <button className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors">
-            Más Info
-          </button>
-        </div>
-      </div>
-    </div>
-  )
+const ServicioCard = ({ servicio, onClick }: { servicio: Servicio, onClick: () => void }) => {
+  const imageMap: Record<string, string> = { 'Spa & Wellness': '/images/services/spa.jpg', 'Restaurante Gourmet': '/images/services/restaurant.jpg', 'Gimnasio Premium': '/images/services/gym.jpg', 'Piscina Infinita': '/images/services/pool.jpg', }
+  return ( <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow group cursor-pointer" onClick={onClick}><div className="relative h-48"><img src={servicio.imagen_url || imageMap[servicio.nombre] || '/images/services/spa.jpg'} alt={servicio.nombre} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/></div><div className="p-6"><h3 className="text-xl font-serif font-bold text-slate-900 mb-2">{servicio.nombre}</h3><p className="text-slate-600 text-sm mb-4 line-clamp-2">{servicio.descripcion}</p><div className="flex justify-between items-center">{servicio.precio && servicio.precio > 0 ? (<p className="text-xl font-bold text-amber-600">${servicio.precio.toLocaleString('es-ES')}</p>) : (<p className="text-sm text-green-600 font-semibold">Incluido</p>)}<button className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-medium transition-colors">Más Info</button></div></div></div> )
 }

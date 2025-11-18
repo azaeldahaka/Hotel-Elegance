@@ -211,7 +211,9 @@ const GestionServicios = ({ servicios, onRecargar }: { servicios: Servicio[], on
   )
 }
 
-// --- GESTIÓN DE HABITACIONES ---
+// -----------------------------------------------------------
+// GESTIÓN DE HABITACIONES (BOTONES VISIBLES + AMENIDADES COMPACTAS)
+// -----------------------------------------------------------
 const GestionHabitaciones = ({ 
   habitaciones,
   tipos,
@@ -227,6 +229,27 @@ const GestionHabitaciones = ({
   const [editando, setEditando] = useState<Habitacion | null>(null)
   const [nuevaAmenidad, setNuevaAmenidad] = useState('')
   
+  // --- ESTADOS DE LOS FILTROS ---
+  const [filtroNumero, setFiltroNumero] = useState('')
+  const [filtroTipo, setFiltroTipo] = useState('')
+  const [filtroAmenidad, setFiltroAmenidad] = useState('')
+  const [filtroEstado, setFiltroEstado] = useState('')
+  const [filtroPrecioMax, setFiltroPrecioMax] = useState('')
+  
+  const [habitacionesFiltradas, setHabitacionesFiltradas] = useState(habitaciones)
+
+  useEffect(() => {
+    let resultado = habitaciones;
+    if (filtroNumero) resultado = resultado.filter(h => h.numero.toLowerCase().includes(filtroNumero.toLowerCase()));
+    if (filtroTipo) resultado = resultado.filter(h => h.tipo === filtroTipo);
+    if (filtroEstado) resultado = resultado.filter(h => h.estado === filtroEstado);
+    if (filtroAmenidad) resultado = resultado.filter(h => h.amenidades && h.amenidades.includes(filtroAmenidad));
+    if (filtroPrecioMax) resultado = resultado.filter(h => h.precio_noche <= parseFloat(filtroPrecioMax));
+    setHabitacionesFiltradas(resultado);
+  }, [habitaciones, filtroNumero, filtroTipo, filtroEstado, filtroAmenidad, filtroPrecioMax]);
+  
+  const limpiarFiltros = () => { setFiltroNumero(''); setFiltroTipo(''); setFiltroEstado(''); setFiltroAmenidad(''); setFiltroPrecioMax(''); }
+
   const [formData, setFormData] = useState({
     numero: '', tipo: tipos.length > 0 ? tipos[0].nombre : '', precio_noche: '', capacidad: '', amenidades: [] as string[], descripcion: '', estado: 'disponible'
   })
@@ -252,11 +275,7 @@ const GestionHabitaciones = ({
 
   const handleCrearAmenidad = async () => {
     if (!nuevaAmenidad.trim()) return;
-    try {
-      await supabase.from('amenidades').insert([{ nombre: nuevaAmenidad.trim() }]);
-      setNuevaAmenidad('');
-      onRecargar();
-    } catch (error) { console.error(error); alert('Error creando amenidad. Quizás ya existe.'); }
+    try { await supabase.from('amenidades').insert([{ nombre: nuevaAmenidad.trim() }]); setNuevaAmenidad(''); onRecargar(); } catch (error) { console.error(error); alert('Error creando amenidad.'); }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -276,70 +295,72 @@ const GestionHabitaciones = ({
 
   return (
     <div>
-      <div className="mb-6">
-        <button onClick={() => { resetForm(); setShowModal(true); }} className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg flex items-center gap-2 shadow-lg transition-colors w-full md:w-auto justify-center">
-          <Plus className="h-5 w-5" /> Nueva Habitación
-        </button>
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+        <div><h2 className="text-xl font-bold text-slate-800">Inventario</h2><p className="text-slate-500 text-sm">Total visible: {habitacionesFiltradas.length}</p></div>
+        <button onClick={() => { resetForm(); setShowModal(true); }} className="px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center gap-2 shadow-md transition-all w-full md:w-auto justify-center"><Plus className="h-5 w-5" /> Nueva Habitación</button>
       </div>
 
+      {/* FILTROS */}
+      <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-8">
+        <div className="flex items-center gap-2 mb-4 text-slate-800 font-semibold border-b border-slate-100 pb-2"><Filter className="h-4 w-4 text-amber-600" />Filtros de Búsqueda</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+          <div className="col-span-1"><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Número</label><div className="relative"><input type="text" placeholder="Ej: 101" value={filtroNumero} onChange={e => setFiltroNumero(e.target.value)} className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-lg outline-none text-sm"/><Home className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" /></div></div>
+          <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo</label><select value={filtroTipo} onChange={e => setFiltroTipo(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm bg-white"><option value="">Todos</option>{tipos.map(t => <option key={t.id} value={t.nombre}>{t.nombre}</option>)}</select></div>
+          <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Estado</label><select value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm bg-white"><option value="">Cualquiera</option><option value="disponible">Disponible</option><option value="ocupada">Ocupada</option><option value="mantenimiento">Mantenimiento</option></select></div>
+          <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Precio Máx.</label><div className="relative"><span className="absolute left-3 top-2 text-slate-500 text-sm">$</span><input type="number" placeholder="Límite" value={filtroPrecioMax} onChange={e => setFiltroPrecioMax(e.target.value)} className="w-full pl-6 pr-3 py-2 border border-slate-300 rounded-lg outline-none text-sm"/></div></div>
+          <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Amenidad</label><select value={filtroAmenidad} onChange={e => setFiltroAmenidad(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm bg-white"><option value="">Cualquiera</option>{amenidadesDisponibles.map(a => <option key={a.id} value={a.nombre}>{a.nombre}</option>)}</select></div>
+        </div>
+        {(filtroNumero || filtroTipo || filtroEstado || filtroAmenidad || filtroPrecioMax) && (<div className="mt-4 pt-3 border-t border-slate-100 flex justify-end"><button onClick={limpiarFiltros} className="text-sm text-red-600 hover:text-red-700 font-medium flex items-center gap-1 hover:underline"><X className="h-3 w-3" /> Limpiar filtros</button></div>)}
+      </div>
+
+      {/* GRILLA DE HABITACIONES */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {habitaciones.map((hab) => (
-          <div key={hab.id} className="bg-white rounded-lg p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+        {habitacionesFiltradas.map((hab) => (
+          <div key={hab.id} className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow flex flex-col h-full">
             <div className="flex justify-between items-start mb-4">
-              <div><h3 className="font-bold text-lg">Habitación {hab.numero}</h3><p className="text-sm text-slate-600">{hab.tipo}</p></div>
-              <span className={`px-2 py-1 rounded text-xs h-fit ${hab.estado === 'disponible' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{hab.estado}</span>
+              <div><h3 className="font-bold text-xl text-slate-800 flex items-center gap-2">{hab.numero}<span className="text-xs font-normal text-slate-400 border border-slate-200 px-2 py-0.5 rounded-full">{hab.tipo}</span></h3></div>
+              <span className={`px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${hab.estado === 'disponible' ? 'bg-green-100 text-green-700' : hab.estado === 'ocupada' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>{hab.estado}</span>
             </div>
-            <p className="text-amber-600 font-bold">${hab.precio_noche?.toLocaleString('es-ES')} / noche</p>
-            <div className="flex flex-wrap gap-1 mt-2 mb-4">
-              {hab.amenidades?.slice(0, 3).map((am, i) => <span key={i} className="text-xs bg-slate-100 px-2 py-1 rounded text-slate-500">{am}</span>)}
-              {(hab.amenidades?.length || 0) > 3 && <span className="text-xs text-slate-400">+{hab.amenidades!.length - 3}</span>}
+            
+            <div className="mb-3">
+              <p className="text-2xl font-bold text-amber-600">${hab.precio_noche?.toLocaleString('es-ES')} <span className="text-sm text-slate-400 font-normal">/ noche</span></p>
+              <p className="text-sm text-slate-500 mt-1 flex items-center gap-1"><Users className="h-3 w-3" /> Capacidad: {hab.capacidad} pax</p>
             </div>
-            <div className="flex gap-2">
-              <button onClick={() => handleEdit(hab)} className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"><Edit className="h-4 w-4"/>Editar</button>
-              <button onClick={() => handleDelete(hab.id)} className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"><Trash2 className="h-4 w-4"/>Eliminar</button>
+
+            {/* --- AMENIDADES ARREGLADAS: Sin altura mínima fija --- */}
+            <div className="flex flex-wrap gap-1.5 mb-4 flex-grow content-start">
+              {hab.amenidades?.slice(0, 4).map((am, i) => (<span key={i} className="text-[11px] bg-slate-100 text-slate-600 px-2 py-1 rounded-md font-medium">{am}</span>))}
+              {(hab.amenidades?.length || 0) > 4 && <span className="text-[11px] text-slate-400 px-1 py-1">+{hab.amenidades!.length - 4} más</span>}
+            </div>
+
+            {/* --- BOTONES VISIBLES SIEMPRE (Sin hover opacity) --- */}
+            <div className="flex gap-2 pt-4 border-t border-slate-100 mt-auto">
+              <button onClick={() => handleEdit(hab)} className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors"><Edit className="h-4 w-4"/> Editar</button>
+              <button onClick={() => handleDelete(hab.id)} className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 transition-colors"><Trash2 className="h-4 w-4"/> Borrar</button>
             </div>
           </div>
         ))}
       </div>
+      
+      {habitacionesFiltradas.length === 0 && (
+        <div className="text-center py-12 bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl"><Home className="h-10 w-10 text-slate-300 mx-auto mb-2"/><p className="text-slate-500">No se encontraron habitaciones.</p><button onClick={limpiarFiltros} className="text-amber-600 font-medium mt-2 hover:underline">Limpiar búsqueda</button></div>
+      )}
 
+      {/* MODAL FORMULARIO (IGUAL QUE ANTES) */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-slate-900">{editando ? 'Editar' : 'Nueva'} Habitación</h2>
-              <button onClick={resetForm} className="text-slate-400 hover:text-slate-600"><X className="h-6 w-6" /></button>
-            </div>
+            <div className="flex justify-between items-center mb-6"><h2 className="text-2xl font-bold text-slate-900">{editando ? 'Editar' : 'Nueva'} Habitación</h2><button onClick={resetForm} className="text-slate-400 hover:text-slate-600"><X className="h-6 w-6" /></button></div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div><label className="text-sm font-medium text-slate-700">Número</label><input value={formData.numero} onChange={e => setFormData({...formData, numero: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required /></div>
-                <div>
-                  <label className="text-sm font-medium text-slate-700">Tipo</label>
-                  <select value={formData.tipo} onChange={e => setFormData({...formData, tipo: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required>
-                    <option value="">Seleccionar...</option>
-                    {tipos.map(t => <option key={t.id} value={t.nombre}>{t.nombre}</option>)}
-                  </select>
-                </div>
+                <div><label className="text-sm font-medium text-slate-700">Tipo</label><select value={formData.tipo} onChange={e => setFormData({...formData, tipo: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required><option value="">Seleccionar...</option>{tipos.map(t => <option key={t.id} value={t.nombre}>{t.nombre}</option>)}</select></div>
                 <div><label className="text-sm font-medium text-slate-700">Precio</label><input type="number" value={formData.precio_noche} onChange={e => setFormData({...formData, precio_noche: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required /></div>
                 <div><label className="text-sm font-medium text-slate-700">Capacidad</label><input type="number" value={formData.capacidad} onChange={e => setFormData({...formData, capacidad: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required /></div>
                 <div><label className="text-sm font-medium text-slate-700">Estado</label><select value={formData.estado} onChange={e => setFormData({...formData, estado: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg"><option value="disponible">Disponible</option><option value="ocupada">Ocupada</option><option value="mantenimiento">Mantenimiento</option></select></div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Amenidades</label>
-                <div className="flex gap-2 mb-2">
-                  <input placeholder="Agregar nueva (ej: Netflix)" value={nuevaAmenidad} onChange={e => setNuevaAmenidad(e.target.value)} className="flex-1 border border-slate-300 p-2 rounded-lg text-sm" />
-                  <button type="button" onClick={handleCrearAmenidad} className="bg-green-600 hover:bg-green-700 text-white px-3 rounded-lg font-bold transition-colors">+</button>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 border border-slate-300 rounded-lg bg-slate-50 max-h-40 overflow-y-auto">
-                  {amenidadesDisponibles.map(amenidad => (
-                    <label key={amenidad.id} className="flex items-center space-x-2 cursor-pointer">
-                      <input type="checkbox" checked={formData.amenidades.includes(amenidad.nombre)} onChange={() => handleAmenidadChange(amenidad.nombre)} className="rounded border-slate-300 text-amber-600 focus:ring-amber-500 h-4 w-4" />
-                      <span className="text-sm text-slate-700">{amenidad.nombre}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
+              <div><label className="block text-sm font-medium text-slate-700 mb-2">Amenidades</label><div className="flex gap-2 mb-2"><input placeholder="Agregar nueva (ej: Netflix)" value={nuevaAmenidad} onChange={e => setNuevaAmenidad(e.target.value)} className="flex-1 border border-slate-300 p-2 rounded-lg text-sm" /><button type="button" onClick={handleCrearAmenidad} className="bg-green-600 hover:bg-green-700 text-white px-3 rounded-lg font-bold transition-colors">+</button></div><div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 border border-slate-300 rounded-lg bg-slate-50 max-h-40 overflow-y-auto">{amenidadesDisponibles.map(amenidad => (<label key={amenidad.id} className="flex items-center space-x-2 cursor-pointer"><input type="checkbox" checked={formData.amenidades.includes(amenidad.nombre)} onChange={() => handleAmenidadChange(amenidad.nombre)} className="rounded border-slate-300 text-amber-600 focus:ring-amber-500 h-4 w-4" /><span className="text-sm text-slate-700">{amenidad.nombre}</span></label>))}</div></div>
               <div><label className="text-sm font-medium text-slate-700">Descripción</label><textarea value={formData.descripcion} onChange={e => setFormData({...formData, descripcion: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" rows={3} /></div>
               <div className="flex gap-3 pt-4"><button type="submit" className="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg font-medium">Guardar</button><button type="button" onClick={resetForm} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded-lg font-medium">Cancelar</button></div>
             </form>
