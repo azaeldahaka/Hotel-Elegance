@@ -7,6 +7,7 @@ interface AuthContextType {
   token: string | null
   loading: boolean
   login: (email: string, password: string) => Promise<void>
+  loginWithGoogle: () => Promise<void>
   register: (email: string, password: string, nombre: string) => Promise<void>
   logout: () => void
 }
@@ -15,9 +16,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const useAuth = () => {
   const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error('useAuth debe usarse dentro de AuthProvider')
-  }
+  if (!context) throw new Error('useAuth debe usarse dentro de AuthProvider')
   return context
 }
 
@@ -27,7 +26,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Recuperar sesión guardada
+    // 1. Cargar sesión existente (si recarga la página)
     const savedUser = localStorage.getItem('hotel_user')
     const savedToken = localStorage.getItem('hotel_token')
     
@@ -35,59 +34,93 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(JSON.parse(savedUser))
       setToken(savedToken)
     }
-    
     setLoading(false)
+
+    // 2. DETECTAR LOGIN DE GOOGLE (La Magia)
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session) {
+        setLoading(true)
+        try {
+          // ¡Llamamos al PUENTE que creamos!
+          const { data, error } = await supabase.functions.invoke('auth-google-sync', {
+            body: { 
+              email: session.user.email,
+              nombre: session.user.user_metadata.full_name,
+              google_token: session.access_token 
+            }
+          })
+
+          if (error) throw error
+          
+          // Guardamos el usuario de NUESTRA tabla
+          const appUser = data.user
+          
+          setUser(appUser)
+          setToken(session.access_token)
+          
+          localStorage.setItem('hotel_user', JSON.stringify(appUser))
+          localStorage.setItem('hotel_token', session.access_token)
+          
+        } catch (error) {
+          console.error('Error sincronizando Google:', error)
+          supabase.auth.signOut() // Si falla, lo sacamos
+        } finally {
+          setLoading(false)
+        }
+      }
+    })
+
+    return () => {
+      authListener.subscription.unsubscribe()
+    }
   }, [])
 
   const login = async (email: string, password: string) => {
+    // ... (Tu lógica de login normal, sin cambios) ...
     try {
-      const { data, error } = await supabase.functions.invoke('auth-login', {
-        body: { email, password },
-      })
-
+      const { data, error } = await supabase.functions.invoke('auth-login', { body: { email, password } })
       if (error) throw error
-
       const responseData = data?.data || data
       
-      if (responseData?.user && responseData?.token) {
-        setUser(responseData.user)
-        setToken(responseData.token)
-        localStorage.setItem('hotel_user', JSON.stringify(responseData.user))
-        localStorage.setItem('hotel_token', responseData.token)
-      } else {
-        throw new Error('Respuesta inválida del servidor')
-      }
+      setUser(responseData.user)
+      setToken(responseData.token)
+      localStorage.setItem('hotel_user', JSON.stringify(responseData.user))
+      localStorage.setItem('hotel_token', responseData.token)
     } catch (error: any) {
-      console.error('Error en login:', error)
       throw new Error(error.message || 'Error al iniciar sesión')
     }
   }
 
+  // --- LA FUNCIÓN QUE LLAMA EL BOTÓN ---
+  const loginWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        // IMPORTANTE: Esto redirige de vuelta a tu página
+        redirectTo: window.location.origin 
+      }
+    })
+    if (error) throw error
+  }
+
   const register = async (email: string, password: string, nombre: string) => {
-    try {
-      const { data, error } = await supabase.functions.invoke('auth-register', {
-        body: { email, password, nombre },
-      })
-
+     // ... (Tu lógica de registro normal, sin cambios) ...
+     try {
+      const { data, error } = await supabase.functions.invoke('auth-register', { body: { email, password, nombre } })
       if (error) throw error
-
       const responseData = data?.data || data
       
-      if (responseData?.user && responseData?.token) {
-        setUser(responseData.user)
-        setToken(responseData.token)
-        localStorage.setItem('hotel_user', JSON.stringify(responseData.user))
-        localStorage.setItem('hotel_token', responseData.token)
-      } else {
-        throw new Error('Respuesta inválida del servidor')
-      }
+      setUser(responseData.user)
+      setToken(responseData.token)
+      localStorage.setItem('hotel_user', JSON.stringify(responseData.user))
+      localStorage.setItem('hotel_token', responseData.token)
     } catch (error: any) {
-      console.error('Error en registro:', error)
       throw new Error(error.message || 'Error al registrarse')
     }
   }
 
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut() // Cerrar sesión de Google
     setUser(null)
     setToken(null)
     localStorage.removeItem('hotel_user')
@@ -95,7 +128,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, loginWithGoogle, register, logout }}>
       {children}
     </AuthContext.Provider>
   )

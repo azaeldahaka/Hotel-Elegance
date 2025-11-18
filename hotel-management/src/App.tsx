@@ -11,19 +11,23 @@ import { OperadorDashboard } from './pages/operador/OperadorDashboard'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
 import { MiPerfil } from './pages/MiPerfil'
 
-
 function App() {
   return (
     <AuthProvider>
       <Router>
         <div className="min-h-screen bg-slate-50">
+          {/* La Navbar siempre visible para poder navegar */}
           <Navbar />
+          
           <Routes>
+            {/* --- RUTAS PÚBLICAS (Cualquiera puede verlas) --- */}
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             
-            {/* Rutas protegidas */}
+            {/* --- RUTAS PROTEGIDAS (Solo logueados) --- */}
+            
+            {/* Rutas de Usuario */}
             <Route path="/usuario/dashboard" element={
               <ProtectedRoute roles={['usuario']}>
                 <UsuarioDashboard />
@@ -42,26 +46,30 @@ function App() {
               </ProtectedRoute>
             } />
             
+            {/* Rutas de Operador */}
             <Route path="/operador/dashboard" element={
               <ProtectedRoute roles={['operador']}>
                 <OperadorDashboard />
               </ProtectedRoute>
             } />
             
+            {/* Rutas de Administrador */}
             <Route path="/admin/dashboard" element={
               <ProtectedRoute roles={['administrador']}>
                 <AdminDashboard />
               </ProtectedRoute>
             } />
-
-            {/* --- ¡NUEVA RUTA AÑADIDA! --- */}
+            
+            {/* Ruta de Perfil (Para todos) */}
             <Route path="/mi-perfil" element={
               <ProtectedRoute roles={['usuario', 'operador', 'administrador']}>
                 <MiPerfil />
               </ProtectedRoute>
             } />
             
+            {/* --- RUTA POR DEFECTO (Cualquier error va al Home) --- */}
             <Route path="*" element={<Navigate to="/" replace />} />
+            
           </Routes>
         </div>
       </Router>
@@ -69,7 +77,7 @@ function App() {
   )
 }
 
-// Componente para rutas protegidas
+// Componente de seguridad
 const ProtectedRoute = ({ 
   children, 
   roles 
@@ -88,10 +96,12 @@ const ProtectedRoute = ({
   }
 
   if (!user) {
+    // Si no está logueado, lo mandamos al login
     return <Navigate to="/login" replace />
   }
 
   if (!roles.includes(user.rol)) {
+    // Si está logueado pero no tiene permiso, al Home
     return <Navigate to="/" replace />
   }
 
