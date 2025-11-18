@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { Habitacion, Usuario, Reserva, TipoHabitacion, Amenidad, Servicio } from '@/types'
-// Usamos Shield en lugar de Lock para evitar el error de Netlify
+// Usamos Shield para evitar el error de 'Lock'
 import { Home, Users, BarChart3, Plus, Edit, Trash2, X, Save, TrendingUp, DollarSign, Calendar, Filter, AlertCircle, RefreshCw, XCircle, CheckCircle, Coffee, Shield } from 'lucide-react'
 import { 
   ResponsiveContainer, 
@@ -84,24 +84,26 @@ export const AdminDashboard = () => {
           <p className="text-slate-600">Gestión completa del hotel</p>
         </div>
 
-        <div className="flex flex-wrap gap-4 mb-8 border-b border-slate-200">
-          <button onClick={() => setActiveTab('habitaciones')} className={`px-4 py-3 font-medium flex items-center gap-2 transition-colors ${activeTab === 'habitaciones' ? 'text-amber-600 border-b-2 border-amber-600' : 'text-slate-600 hover:text-slate-900'}`}>
-            <Home className="h-5 w-5" /> Habitaciones
+        {/* --- AQUÍ ESTÁ EL ARREGLO PARA CELULAR (flex-wrap) --- */}
+        <div className="flex flex-wrap gap-2 mb-8 border-b border-slate-200 pb-1">
+          <button onClick={() => setActiveTab('habitaciones')} className={`px-3 py-2 text-sm md:text-base font-medium flex items-center gap-2 rounded-t-lg transition-colors ${activeTab === 'habitaciones' ? 'bg-white text-amber-600 border-b-2 border-amber-600 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
+            <Home className="h-4 w-4" /> Habitaciones
           </button>
-          <button onClick={() => setActiveTab('servicios')} className={`px-4 py-3 font-medium flex items-center gap-2 transition-colors ${activeTab === 'servicios' ? 'text-amber-600 border-b-2 border-amber-600' : 'text-slate-600 hover:text-slate-900'}`}>
-            <Coffee className="h-5 w-5" /> Servicios
+          <button onClick={() => setActiveTab('servicios')} className={`px-3 py-2 text-sm md:text-base font-medium flex items-center gap-2 rounded-t-lg transition-colors ${activeTab === 'servicios' ? 'bg-white text-amber-600 border-b-2 border-amber-600 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
+            <Coffee className="h-4 w-4" /> Servicios
           </button>
-          <button onClick={() => setActiveTab('reservas')} className={`px-4 py-3 font-medium flex items-center gap-2 transition-colors ${activeTab === 'reservas' ? 'text-amber-600 border-b-2 border-amber-600' : 'text-slate-600 hover:text-slate-900'}`}>
-            <Calendar className="h-5 w-5" /> Reservas
+          <button onClick={() => setActiveTab('reservas')} className={`px-3 py-2 text-sm md:text-base font-medium flex items-center gap-2 rounded-t-lg transition-colors ${activeTab === 'reservas' ? 'bg-white text-amber-600 border-b-2 border-amber-600 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
+            <Calendar className="h-4 w-4" /> Reservas
           </button>
-          <button onClick={() => setActiveTab('operadores')} className={`px-4 py-3 font-medium flex items-center gap-2 transition-colors ${activeTab === 'operadores' ? 'text-amber-600 border-b-2 border-amber-600' : 'text-slate-600 hover:text-slate-900'}`}>
-            <Users className="h-5 w-5" /> Operadores
+          <button onClick={() => setActiveTab('operadores')} className={`px-3 py-2 text-sm md:text-base font-medium flex items-center gap-2 rounded-t-lg transition-colors ${activeTab === 'operadores' ? 'bg-white text-amber-600 border-b-2 border-amber-600 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
+            <Users className="h-4 w-4" /> Operadores
           </button>
-          <button onClick={() => setActiveTab('estadisticas')} className={`px-4 py-3 font-medium flex items-center gap-2 transition-colors ${activeTab === 'estadisticas' ? 'text-amber-600 border-b-2 border-amber-600' : 'text-slate-600 hover:text-slate-900'}`}>
-            <BarChart3 className="h-5 w-5" /> Estadísticas
+          <button onClick={() => setActiveTab('estadisticas')} className={`px-3 py-2 text-sm md:text-base font-medium flex items-center gap-2 rounded-t-lg transition-colors ${activeTab === 'estadisticas' ? 'bg-white text-amber-600 border-b-2 border-amber-600 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
+            <BarChart3 className="h-4 w-4" /> Estadísticas
           </button>
         </div>
 
+        {/* Contenido */}
         {activeTab === 'habitaciones' && (
           <GestionHabitaciones 
             habitaciones={habitaciones} 
@@ -130,244 +132,6 @@ export const AdminDashboard = () => {
         {activeTab === 'estadisticas' && (
           <Estadisticas habitaciones={habitaciones} reservas={reservas} />
         )}
-      </div>
-    </div>
-  )
-}
-
-// -----------------------------------------------------------
-// GESTIÓN DE RESERVAS (FILTROS + BOTONES + MODAL)
-// -----------------------------------------------------------
-const GestionReservas = ({ 
-  reservas, 
-  habitaciones,
-  clientes,
-  onRecargar
-}: { 
-  reservas: any[], 
-  habitaciones: Habitacion[],
-  clientes: Usuario[],
-  onRecargar: () => void
-}) => {
-  const [fechaInicio, setFIni] = useState('');
-  const [fechaFin, setFFin] = useState('');
-  const [fNombre, setFNom] = useState('');
-  const [fTipo, setFTipo] = useState('');
-  const [filtradas, setFiltradas] = useState(reservas);
-
-  const [showModal, setShowModal] = useState(false);
-  const [reservaAEditar, setReservaAEditar] = useState<any | null>(null);
-
-  const tiposDeHabitacion = [...new Set(habitaciones.map(h => h.tipo))];
-
-  useEffect(() => {
-    // --- LÓGICA DE FILTRADO ROBUSTA (TIMESTAMPS) ---
-    let res = reservas;
-    
-    // Filtro Fecha Inicio
-    if (fechaInicio) {
-      const [y, m, d] = fechaInicio.split('-').map(Number);
-      const tsIni = new Date(y, m - 1, d, 0, 0, 0).getTime();
-      res = res.filter((r:any) => new Date(r.fecha_reserva).getTime() >= tsIni);
-    }
-    
-    // Filtro Fecha Fin
-    if (fechaFin) {
-      const [y, m, d] = fechaFin.split('-').map(Number);
-      const tsFin = new Date(y, m - 1, d, 23, 59, 59).getTime();
-      res = res.filter((r:any) => new Date(r.fecha_reserva).getTime() <= tsFin);
-    }
-
-    // Filtro Nombre
-    if (fNombre) {
-      res = res.filter((r:any) => {
-        const c = clientes.find((u:any) => u.id === r.usuario_id);
-        return c?.nombre.toLowerCase().includes(fNombre.toLowerCase());
-      });
-    }
-
-    // Filtro Tipo
-    if (fTipo) {
-      res = res.filter((r:any) => {
-        const h = habitaciones.find((ha:any) => ha.id === r.habitacion_id);
-        return h?.tipo === fTipo;
-      });
-    }
-
-    setFiltradas(res);
-  }, [reservas, fechaInicio, fechaFin, fNombre, fTipo, clientes, habitaciones]);
-
-  const handleLimpiar = () => {
-    setFIni(''); setFFin(''); setFNom(''); setFTipo('');
-  };
-
-  const handleOp = async (id:string, op:string) => {
-    if(confirm(`¿Estás seguro de marcar como ${op}?`)) {
-      await supabase.from('reservas').update({estado:op}).eq('id', id);
-      onRecargar();
-    }
-  };
-
-  return (
-    <div>
-      {/* Barra de Filtros */}
-      <div className="bg-white p-4 rounded-lg shadow-sm mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end border border-slate-200">
-        <div>
-          <label className="text-sm font-medium text-slate-700 mb-1">Desde (Reserva)</label>
-          <input type="date" value={fechaInicio} onChange={e=>setFIni(e.target.value)} className="w-full border border-slate-300 p-2 rounded-lg"/>
-        </div>
-        <div>
-          <label className="text-sm font-medium text-slate-700 mb-1">Hasta (Reserva)</label>
-          <input type="date" value={fechaFin} onChange={e=>setFFin(e.target.value)} className="w-full border border-slate-300 p-2 rounded-lg"/>
-        </div>
-        <div>
-          <label className="text-sm font-medium text-slate-700 mb-1">Huésped</label>
-          <input placeholder="Buscar..." value={fNombre} onChange={e=>setFNom(e.target.value)} className="w-full border border-slate-300 p-2 rounded-lg"/>
-        </div>
-        <div>
-          <label className="text-sm font-medium text-slate-700 mb-1">Tipo</label>
-          <select value={fTipo} onChange={e=>setFTipo(e.target.value)} className="w-full border border-slate-300 p-2 rounded-lg">
-            <option value="">Todos</option>
-            {tiposDeHabitacion.map((t:any)=><option key={t} value={t}>{t}</option>)}
-          </select>
-        </div>
-        <div className="md:col-span-4 flex gap-2">
-          <button onClick={handleLimpiar} className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium transition-colors">
-            Limpiar Filtros
-          </button>
-        </div>
-      </div>
-
-      {/* Lista de Reservas */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {filtradas.map((r:any) => {
-          const c = clientes.find((u:any) => u.id === r.usuario_id);
-          const h = habitaciones.find((ha:any) => ha.id === r.habitacion_id);
-          return (
-            <div key={r.id} className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <h3 className="font-bold text-lg text-slate-900">
-                    {c?.nombre || `ID: ${r.usuario_id.slice(0,8)}`}
-                  </h3>
-                  <p className="text-sm text-slate-500">{c?.email || 'Email no disponible'}</p>
-                </div>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
-                  r.estado==='activa'?'bg-green-100 text-green-800':
-                  r.estado==='completada'?'bg-blue-100 text-blue-800':'bg-red-100 text-red-800'
-                }`}>
-                  {r.estado}
-                </span>
-              </div>
-              
-              <p className="font-semibold text-slate-700 mb-2">
-                {h ? `Habitación ${h.numero} (${h.tipo})` : 'Habitación eliminada'}
-              </p>
-              
-              <div className="text-sm text-slate-600 space-y-1 mb-4">
-                <p>Check-in: {new Date(r.fecha_entrada).toLocaleDateString()}</p>
-                <p>Check-out: {new Date(r.fecha_salida).toLocaleDateString()}</p>
-                <p>Huéspedes: {r.num_huespedes}</p>
-                <p className="font-bold text-amber-600 pt-1">Total: ${r.total.toLocaleString('es-ES')}</p>
-                <p className="text-xs text-slate-400">Reservado el: {new Date(r.fecha_reserva).toLocaleDateString()}</p>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <button 
-                  onClick={()=>handleOp(r.id, 'completada')} 
-                  disabled={r.estado!=='activa'} 
-                  className="bg-green-100 hover:bg-green-200 text-green-700 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1 disabled:opacity-50"
-                >
-                  <CheckCircle className="h-4 w-4"/> Ok
-                </button>
-                <button 
-                  onClick={()=>{setReservaAEditar(r);setShowModal(true)}} 
-                  disabled={r.estado!=='activa'} 
-                  className="bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1 disabled:opacity-50"
-                >
-                  <Edit className="h-4 w-4"/> Edit
-                </button>
-                <button 
-                  onClick={()=>handleOp(r.id, 'cancelada')} 
-                  disabled={r.estado!=='activa'} 
-                  className="bg-red-100 hover:bg-red-200 text-red-700 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1 disabled:opacity-50"
-                >
-                  <XCircle className="h-4 w-4"/> X
-                </button>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
-      {showModal && <ModalEditarReserva reserva={reservaAEditar} habitaciones={habitaciones} clientes={clientes} onClose={()=>setShowModal(false)} onSave={()=>{setShowModal(false);onRecargar()}}/>}
-    </div>
-  )
-}
-
-// --- MODAL EDITAR RESERVA (COMPLETO) ---
-const ModalEditarReserva = ({ reserva, habitaciones, clientes, onClose, onSave }: any) => {
-  const [formData, setFormData] = useState({ habitacion_id: reserva.habitacion_id, fecha_entrada: reserva.fecha_entrada, fecha_salida: reserva.fecha_salida, num_huespedes: reserva.num_huespedes });
-  const [total, setTotal] = useState(reserva.total); 
-  const [error, setError] = useState('');
-  const cliente = clientes.find((c:any) => c.id === reserva.usuario_id);
-
-  useEffect(() => {
-    const h = habitaciones.find((x:any)=>x.id===formData.habitacion_id);
-    if(h && formData.fecha_entrada && formData.fecha_salida) {
-      const dias = Math.ceil((new Date(formData.fecha_salida + 'T00:00:00').getTime() - new Date(formData.fecha_entrada + 'T00:00:00').getTime())/(1000*60*60*24));
-      setTotal(dias > 0 ? dias * h.precio_noche : 0);
-    }
-  }, [formData, habitaciones]);
-
-  const handleSubmit = async (e:any) => { 
-    e.preventDefault(); setError('');
-    try {
-      if(new Date(formData.fecha_salida) <= new Date(formData.fecha_entrada)) throw new Error("Fechas inválidas");
-      const {data} = await supabase.functions.invoke('check-room-availability', { body: {...formData, reserva_id_excluir: reserva.id} });
-      if(!data?.data?.available) throw new Error('No disponible en esas fechas');
-      await supabase.from('reservas').update({...formData, total}).eq('id', reserva.id); 
-      onSave();
-    } catch(err:any) { setError(err.message); }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl">
-        <h2 className="font-bold text-xl mb-2 text-slate-900">Editar Reserva</h2>
-        <p className="text-sm text-slate-500 mb-4">Cliente: {cliente?.nombre || 'Desconocido'}</p>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && <p className="text-red-700 bg-red-50 p-3 rounded-lg text-sm flex gap-2"><AlertCircle className="h-4 w-4"/>{error}</p>}
-          
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Habitación</label>
-            <select value={formData.habitacion_id} onChange={e=>setFormData({...formData, habitacion_id:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg">
-              {habitaciones.map((h:any)=><option key={h.id} value={h.id}>{h.numero} - {h.tipo} (${h.precio_noche})</option>)}
-            </select>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Entrada</label>
-              <input type="date" value={formData.fecha_entrada} onChange={e=>setFormData({...formData, fecha_entrada:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg"/>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Salida</label>
-              <input type="date" value={formData.fecha_salida} onChange={e=>setFormData({...formData, fecha_salida:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg"/>
-            </div>
-          </div>
-          
-          <div className="bg-slate-50 p-3 rounded-lg flex justify-between items-center">
-            <span className="text-sm text-slate-600">Nuevo Total:</span>
-            <span className="font-bold text-amber-600 text-lg">${total.toLocaleString('es-ES')}</span>
-          </div>
-          
-          <div className="flex gap-3 pt-2">
-            <button type="submit" className="flex-1 bg-amber-600 text-white py-2 rounded-lg hover:bg-amber-700 font-medium">Guardar</button>
-            <button type="button" onClick={onClose} className="flex-1 bg-slate-200 text-slate-700 py-2 rounded-lg hover:bg-slate-300 font-medium">Cancelar</button>
-          </div>
-        </form>
       </div>
     </div>
   )
@@ -410,19 +174,19 @@ const GestionServicios = ({ servicios, onRecargar }: { servicios: Servicio[], on
   return (
     <div>
       <div className="mb-6">
-        <button onClick={() => {setEditando(null); setFormData({ nombre: '', descripcion: '', precio: '', imagen_url: '' }); setShowModal(true)}} className="px-6 py-3 bg-amber-600 text-white rounded-lg flex items-center gap-2 shadow-lg hover:bg-amber-700 transition-colors">
+        <button onClick={() => {setEditando(null); setFormData({ nombre: '', descripcion: '', precio: '', imagen_url: '' }); setShowModal(true)}} className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg flex items-center gap-2 shadow-lg transition-colors w-full md:w-auto justify-center">
           <Plus className="h-5 w-5" /> Nuevo Servicio
         </button>
       </div>
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {servicios.map((s) => (
-          <div key={s.id} className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+          <div key={s.id} className="bg-white p-6 rounded-lg border shadow-sm hover:shadow-md transition-shadow">
             <h3 className="font-bold text-lg text-slate-900">{s.nombre}</h3>
             <p className="text-sm text-slate-600 mb-2 line-clamp-2">{s.descripcion}</p>
             <p className="font-bold text-amber-600 mb-4">${s.precio.toLocaleString('es-ES')}</p>
             <div className="flex gap-2">
-              <button onClick={() => { setEditando(s); setFormData({ nombre: s.nombre, descripcion: s.descripcion, precio: s.precio.toString(), imagen_url: s.imagen_url || '' }); setShowModal(true) }} className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 rounded-lg text-sm font-medium">Editar</button>
-              <button onClick={() => handleDelete(s.id)} className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 py-2 rounded-lg text-sm font-medium">Eliminar</button>
+              <button onClick={() => { setEditando(s); setFormData({ nombre: s.nombre, descripcion: s.descripcion, precio: s.precio.toString(), imagen_url: s.imagen_url || '' }); setShowModal(true) }} className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 rounded-lg text-sm font-medium transition-colors">Editar</button>
+              <button onClick={() => handleDelete(s.id)} className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 py-2 rounded-lg text-sm font-medium transition-colors">Eliminar</button>
             </div>
           </div>
         ))}
@@ -436,8 +200,8 @@ const GestionServicios = ({ servicios, onRecargar }: { servicios: Servicio[], on
               <textarea placeholder="Descripción" value={formData.descripcion} onChange={e => setFormData({...formData, descripcion: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required />
               <input type="number" placeholder="Precio" value={formData.precio} onChange={e => setFormData({...formData, precio: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required />
               <div className="flex gap-2 pt-2">
-                <button type="submit" className="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg font-medium">Guardar</button>
-                <button type="button" onClick={() => setShowModal(false)} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded-lg font-medium">Cancelar</button>
+                <button type="submit" className="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg font-medium transition-colors">Guardar</button>
+                <button type="button" onClick={() => setShowModal(false)} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded-lg font-medium transition-colors">Cancelar</button>
               </div>
             </form>
           </div>
@@ -513,12 +277,12 @@ const GestionHabitaciones = ({
   return (
     <div>
       <div className="mb-6">
-        <button onClick={() => { resetForm(); setShowModal(true); }} className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg flex items-center gap-2 shadow-lg transition-colors">
+        <button onClick={() => { resetForm(); setShowModal(true); }} className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg flex items-center gap-2 shadow-lg transition-colors w-full md:w-auto justify-center">
           <Plus className="h-5 w-5" /> Nueva Habitación
         </button>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {habitaciones.map((hab) => (
           <div key={hab.id} className="bg-white rounded-lg p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-4">
@@ -531,8 +295,8 @@ const GestionHabitaciones = ({
               {(hab.amenidades?.length || 0) > 3 && <span className="text-xs text-slate-400">+{hab.amenidades!.length - 3}</span>}
             </div>
             <div className="flex gap-2">
-              <button onClick={() => handleEdit(hab)} className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1"><Edit className="h-4 w-4"/>Editar</button>
-              <button onClick={() => handleDelete(hab.id)} className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1"><Trash2 className="h-4 w-4"/>Eliminar</button>
+              <button onClick={() => handleEdit(hab)} className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"><Edit className="h-4 w-4"/>Editar</button>
+              <button onClick={() => handleDelete(hab.id)} className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-1"><Trash2 className="h-4 w-4"/>Eliminar</button>
             </div>
           </div>
         ))}
@@ -586,19 +350,123 @@ const GestionHabitaciones = ({
   )
 }
 
+// --- GESTIÓN DE RESERVAS ---
+const GestionReservas = ({ reservas, habitaciones, clientes, onRecargar }: any) => {
+  const [fechaInicio, setFIni] = useState(''); const [fechaFin, setFFin] = useState(''); const [fNombre, setFNom] = useState(''); const [fTipo, setFTipo] = useState('');
+  const [filtradas, setFiltradas] = useState(reservas); const [showModal, setShowModal] = useState(false); const [reservaAEditar, setReservaAEditar] = useState<any>(null);
+  
+  const tiposDeHabitacion = [...new Set(habitaciones.map((h:any) => h.tipo))];
+
+  useEffect(() => {
+    let res = reservas; 
+    let tsIni = fechaInicio ? new Date(fechaInicio.split('-').map(Number) as any).setHours(0,0,0,0) : 0;
+    let tsFin = fechaFin ? new Date(fechaFin.split('-').map(Number) as any).setHours(23,59,59) : Infinity;
+    
+    res = res.filter((r:any) => { const d = new Date(r.fecha_reserva).getTime(); return d >= tsIni && d <= tsFin; });
+    if (fNombre) res = res.filter((r:any) => clientes.find((c:any) => c.id === r.usuario_id)?.nombre.toLowerCase().includes(fNombre.toLowerCase()));
+    if (fTipo) res = res.filter((r:any) => habitaciones.find((h:any) => h.id === r.habitacion_id)?.tipo === fTipo);
+    setFiltradas(res);
+  }, [reservas, fechaInicio, fechaFin, fNombre, fTipo, clientes, habitaciones]);
+
+  const handleLimpiar = () => { setFIni(''); setFFin(''); setFNom(''); setFTipo(''); };
+
+  const handleOp = async (id:string, op:string) => {
+    if(confirm(`¿Estás seguro de marcar como ${op}?`)) {
+      await supabase.from('reservas').update({estado:op}).eq('id', id);
+      onRecargar();
+    }
+  };
+
+  return (
+    <div>
+      <div className="bg-white p-4 rounded-lg shadow-sm mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end border border-slate-200">
+        <div><label className="text-sm font-medium text-slate-700 mb-1">Desde (Reserva)</label><input type="date" value={fechaInicio} onChange={e=>setFIni(e.target.value)} className="w-full border border-slate-300 p-2 rounded-lg"/></div>
+        <div><label className="text-sm font-medium text-slate-700 mb-1">Hasta (Reserva)</label><input type="date" value={fechaFin} onChange={e=>setFFin(e.target.value)} className="w-full border border-slate-300 p-2 rounded-lg"/></div>
+        <div><label className="text-sm font-medium text-slate-700 mb-1">Huésped</label><input placeholder="Buscar..." value={fNombre} onChange={e=>setFNom(e.target.value)} className="w-full border border-slate-300 p-2 rounded-lg"/></div>
+        <div><label className="text-sm font-medium text-slate-700 mb-1">Tipo</label><select value={fTipo} onChange={e=>setFTipo(e.target.value)} className="w-full border border-slate-300 p-2 rounded-lg"><option value="">Todos</option>{tiposDeHabitacion.map((t:any)=><option key={t} value={t}>{t}</option>)}</select></div>
+        <div className="md:col-span-4 flex gap-2"><button onClick={handleLimpiar} className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium transition-colors">Limpiar Filtros</button></div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {filtradas.map((r:any) => {
+          const c = clientes.find((u:any) => u.id === r.usuario_id); const h = habitaciones.find((ha:any) => ha.id === r.habitacion_id);
+          return (
+            <div key={r.id} className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex justify-between items-start mb-2">
+                <div><h3 className="font-bold text-lg text-slate-900">{c?.nombre || `ID: ${r.usuario_id.slice(0,8)}`}</h3><p className="text-sm text-slate-500">{c?.email || 'Email no disponible'}</p></div>
+                <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${r.estado==='activa'?'bg-green-100 text-green-800':r.estado==='completada'?'bg-blue-100 text-blue-800':'bg-red-100 text-red-800'}`}>{r.estado}</span>
+              </div>
+              <p className="font-semibold text-slate-700 mb-2">{h ? `Habitación ${h.numero} (${h.tipo})` : 'Habitación eliminada'}</p>
+              <div className="text-sm text-slate-600 space-y-1 mb-4"><p>Check-in: {new Date(r.fecha_entrada).toLocaleDateString()}</p><p>Check-out: {new Date(r.fecha_salida).toLocaleDateString()}</p><p>Huéspedes: {r.num_huespedes}</p><p className="font-bold text-amber-600 pt-1">Total: ${r.total.toLocaleString('es-ES')}</p><p className="text-xs text-slate-400">Reservado el: {new Date(r.fecha_reserva).toLocaleDateString()}</p></div>
+              <div className="grid grid-cols-3 gap-2">
+                <button onClick={()=>handleOp(r.id, 'completada')} disabled={r.estado!=='activa'} className="bg-green-100 hover:bg-green-200 text-green-700 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1 disabled:opacity-50"><CheckCircle className="h-4 w-4"/> Ok</button>
+                <button onClick={()=>{setReservaAEditar(r);setShowModal(true)}} disabled={r.estado!=='activa'} className="bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1 disabled:opacity-50"><Edit className="h-4 w-4"/> Edit</button>
+                <button onClick={()=>handleOp(r.id, 'cancelada')} disabled={r.estado!=='activa'} className="bg-red-100 hover:bg-red-200 text-red-700 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1 disabled:opacity-50"><XCircle className="h-4 w-4"/> X</button>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      {showModal && <ModalEditarReserva reserva={reservaAEditar} habitaciones={habitaciones} clientes={clientes} onClose={()=>setShowModal(false)} onSave={()=>{setShowModal(false);onRecargar()}}/>}
+    </div>
+  )
+}
+
+const ModalEditarReserva = ({ reserva, habitaciones, clientes, onClose, onSave }: any) => {
+  const [formData, setFormData] = useState({ habitacion_id: reserva.habitacion_id, fecha_entrada: reserva.fecha_entrada, fecha_salida: reserva.fecha_salida, num_huespedes: reserva.num_huespedes });
+  const [total, setTotal] = useState(reserva.total); const [error, setError] = useState('');
+  const cliente = clientes.find((c:any) => c.id === reserva.usuario_id);
+
+  useEffect(() => {
+    const h = habitaciones.find((x:any)=>x.id===formData.habitacion_id);
+    if(h && formData.fecha_entrada && formData.fecha_salida) {
+      const dias = Math.ceil((new Date(formData.fecha_salida + 'T00:00:00').getTime() - new Date(formData.fecha_entrada + 'T00:00:00').getTime())/(1000*60*60*24));
+      setTotal(dias > 0 ? dias * h.precio_noche : 0);
+    }
+  }, [formData, habitaciones]);
+
+  const handleSubmit = async (e:any) => { 
+    e.preventDefault(); setError('');
+    try {
+      if(new Date(formData.fecha_salida) <= new Date(formData.fecha_entrada)) throw new Error("Fechas inválidas");
+      const {data} = await supabase.functions.invoke('check-room-availability', { body: {...formData, reserva_id_excluir: reserva.id} });
+      if(!data?.data?.available) throw new Error('No disponible en esas fechas');
+      await supabase.from('reservas').update({...formData, total}).eq('id', reserva.id); 
+      onSave();
+    } catch(err:any) { setError(err.message); }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl">
+        <h2 className="font-bold text-xl mb-2 text-slate-900">Editar Reserva</h2>
+        <p className="text-sm text-slate-500 mb-4">Cliente: {cliente?.nombre || 'Desconocido'}</p>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <p className="text-red-700 bg-red-50 p-3 rounded-lg text-sm flex gap-2"><AlertCircle className="h-4 w-4"/>{error}</p>}
+          <div><label className="block text-sm font-medium text-slate-700 mb-1">Habitación</label><select value={formData.habitacion_id} onChange={e=>setFormData({...formData, habitacion_id:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg">{habitaciones.map((h:any)=><option key={h.id} value={h.id}>{h.numero} - {h.tipo} (${h.precio_noche})</option>)}</select></div>
+          <div className="grid grid-cols-2 gap-4"><div><label className="block text-sm font-medium text-slate-700 mb-1">Entrada</label><input type="date" value={formData.fecha_entrada} onChange={e=>setFormData({...formData, fecha_entrada:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg"/></div><div><label className="block text-sm font-medium text-slate-700 mb-1">Salida</label><input type="date" value={formData.fecha_salida} onChange={e=>setFormData({...formData, fecha_salida:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg"/></div></div>
+          <div className="bg-slate-50 p-3 rounded-lg flex justify-between items-center"><span className="text-sm text-slate-600">Nuevo Total:</span><span className="font-bold text-amber-600 text-lg">${total.toLocaleString('es-ES')}</span></div>
+          <div className="flex gap-3 pt-2"><button type="submit" className="flex-1 bg-amber-600 text-white py-2 rounded-lg hover:bg-amber-700 font-medium">Guardar</button><button type="button" onClick={onClose} className="flex-1 bg-slate-200 text-slate-700 py-2 rounded-lg hover:bg-slate-300 font-medium">Cancelar</button></div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 // --- GESTIÓN DE OPERADORES ---
 const GestionOperadores = ({ operadores, onRecargar }: any) => {
   const [showCreate, setShowCreate] = useState(false); const [showEdit, setShowEdit] = useState(false); const [opEdit, setOpEdit] = useState<any>(null);
   const [form, setForm] = useState({email:'', nombre:'', password:''}); const [error, setError] = useState('');
   const submitCreate = async (e:any) => { e.preventDefault(); setError(''); try { const {error} = await supabase.functions.invoke('create-user', {body:{...form, rol:'operador'}}); if(error) throw error; setForm({email:'',nombre:'',password:''}); setShowCreate(false); onRecargar(); } catch(err:any) { setError(err.message); }};
   const handleEditClick = (op: any) => { setOpEdit(op); setShowEdit(true); }
-  const handleDelete = async (id: string) => { if (!confirm('¿Eliminar operador?')) return; await supabase.from('usuarios').delete().eq('id', id); onRecargar(); }
+  const handleDelete = async (id: string) => { if (!confirm('¿Estás seguro de eliminar este operador?')) return; try { await supabase.from('usuarios').delete().eq('id', id); onRecargar(); } catch (error) { console.error('Error eliminando operador:', error) } }
 
   return (
     <div>
-      <div className="mb-6"><button onClick={()=>{setError('');setShowCreate(true)}} className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg flex items-center gap-2 shadow-lg transition-colors"><Plus className="h-5 w-5"/>Nuevo Operador</button></div>
-      <div className="grid md:grid-cols-3 gap-6">{operadores.map((o:any)=><div key={o.id} className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow"><h3 className="font-bold text-lg text-slate-900">{o.nombre}</h3><p className="text-sm text-slate-600 mb-4">{o.email}</p><div className="flex gap-2"><button onClick={()=>handleEditClick(o)} className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 rounded-lg text-sm font-medium transition-colors">Editar</button><button onClick={()=>handleDelete(o.id)} className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 py-2 rounded-lg text-sm font-medium transition-colors">Eliminar</button></div></div>)}</div>
-      {showCreate && <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl"><h2 className="text-2xl font-bold mb-4">Nuevo Operador</h2><form onSubmit={submitCreate} className="space-y-4">{error && <p className="text-red-700 bg-red-50 p-2 rounded text-sm">{error}</p>}<input placeholder="Nombre" value={form.nombre} onChange={e=>setForm({...form, nombre:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required/><input placeholder="Email" value={form.email} onChange={e=>setForm({...form, email:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required/><input type="password" placeholder="Pass" value={form.password} onChange={e=>setForm({...form, password:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required minLength={6}/><div className="flex gap-2 pt-2"><button className="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg font-medium">Crear</button><button type="button" onClick={()=>setShowCreate(false)} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded-lg font-medium">Cancelar</button></div></form></div></div>}
+      <div className="mb-6"><button onClick={()=>{setError('');setShowCreate(true)}} className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg flex items-center gap-2 shadow-lg transition-colors w-full md:w-auto justify-center"><Plus className="h-5 w-5"/>Nuevo Operador</button></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{operadores.map((o:any)=><div key={o.id} className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow"><h3 className="font-bold text-lg text-slate-900">{o.nombre}</h3><p className="text-sm text-slate-600 mb-4">{o.email}</p><div className="flex gap-2"><button onClick={()=>handleEditClick(o)} className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 rounded-lg text-sm font-medium transition-colors">Editar</button><button onClick={()=>handleDelete(o.id)} className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 py-2 rounded-lg text-sm font-medium transition-colors">Eliminar</button></div></div>)}</div>
+      {showCreate && <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"><div className="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl"><h2 className="text-2xl font-bold mb-4">Nuevo Operador</h2><form onSubmit={submitCreate} className="space-y-4">{error && <p className="text-red-700 bg-red-50 p-2 rounded text-sm">{error}</p>}<input placeholder="Nombre" value={form.nombre} onChange={e=>setForm({...form, nombre:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required/><input placeholder="Email" value={form.email} onChange={e=>setForm({...form, email:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required/><input type="password" placeholder="Pass" value={form.password} onChange={e=>setForm({...form, password:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required minLength={6}/><div className="flex gap-2 pt-2"><button className="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg font-medium">Crear</button><button type="button" onClick={()=>setShowCreate(false)} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded-lg font-medium">Cancelar</button></div></form></div></div>}
       {showEdit && opEdit && <ModalEditarOperador operador={opEdit} onClose={()=>setShowEdit(false)} onSave={()=>{setShowEdit(false);onRecargar()}} />}
     </div>
   )
@@ -609,13 +477,10 @@ const ModalEditarOperador = ({ operador, onClose, onSave }: any) => {
   const [pass, setPass] = useState(''); const [adminPass, setAdminPass] = useState(''); const [loading, setLoading] = useState(false); const [error, setError] = useState('');
   const handleSubmit = async (e: any) => { e.preventDefault(); setLoading(true); setError(''); try { const { error: funcError } = await supabase.functions.invoke('admin-update-user', { body: { admin_id: adminUser?.id, admin_password: adminPass, target_user_id: operador.id, ...formData, nueva_password: pass || undefined } }); if (funcError) { const err = await funcError.context.json(); throw new Error(err.error.message); } onSave(); } catch (e: any) { setError(e.message); } finally { setLoading(false); } };
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"><div className="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl"><h2 className="text-2xl font-bold mb-4">Editar Operador</h2><form onSubmit={handleSubmit} className="space-y-4">{error && <p className="text-red-700 bg-red-50 p-2 rounded text-sm">{error}</p>}<input value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" placeholder="Nombre"/><input value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" placeholder="Email"/><select value={formData.rol} onChange={e => setFormData({...formData, rol: e.target.value as any})} className="w-full border border-slate-300 p-2 rounded-lg"><option value="operador">Operador</option><option value="administrador">Administrador</option></select><input type="password" placeholder="Nueva pass (opcional)" value={pass} onChange={e => setPass(e.target.value)} className="w-full border border-slate-300 p-2 rounded-lg"/><div className="bg-amber-50 p-3 rounded-lg border border-amber-200"><label className="text-sm font-bold text-amber-800 flex gap-2 items-center mb-1"><Shield className="h-4 w-4"/>Confirmar con TU contraseña:</label><input type="password" value={adminPass} onChange={e => setAdminPass(e.target.value)} className="w-full border border-amber-300 p-2 rounded-lg bg-white" required/></div><div className="flex gap-2 pt-2"><button disabled={loading} className="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg font-medium disabled:opacity-50">Guardar</button><button type="button" onClick={onClose} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded-lg font-medium disabled:opacity-50">Cancelar</button></div></form></div></div>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"><div className="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl"><h2 className="text-2xl font-bold mb-4">Editar Operador</h2><form onSubmit={handleSubmit} className="space-y-4">{error && <p className="text-red-700 bg-red-50 p-2 rounded text-sm">{error}</p>}<input value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" placeholder="Nombre"/><input value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" placeholder="Email"/><select value={formData.rol} onChange={e => setFormData({...formData, rol: e.target.value as any})} className="w-full border border-slate-300 p-2 rounded-lg"><option value="operador">Operador</option><option value="administrador">Administrador</option></select><input type="password" placeholder="Nueva contraseña (opcional)" value={pass} onChange={e => setPass(e.target.value)} className="w-full border border-slate-300 p-2 rounded-lg"/><div className="bg-amber-50 p-3 rounded-lg border border-amber-200"><label className="text-sm font-bold text-amber-800 flex gap-2 items-center mb-1"><Shield className="h-4 w-4"/>Confirmar con TU contraseña:</label><input type="password" value={adminPass} onChange={e => setAdminPass(e.target.value)} className="w-full border border-amber-300 p-2 rounded-lg bg-white" required/></div><div className="flex gap-2 pt-2"><button disabled={loading} className="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg font-medium disabled:opacity-50">Guardar</button><button type="button" onClick={onClose} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded-lg font-medium disabled:opacity-50">Cancelar</button></div></form></div></div>
   )
 }
 
-// -----------------------------------------------------------
-// ESTADÍSTICAS COMPLETAS
-// -----------------------------------------------------------
 const Estadisticas = ({ habitaciones, reservas }: any) => {
   const ingresosCompletadas = reservas.filter((r:any) => r.estado === 'completada').reduce((sum:number, r:any) => sum + r.total, 0)
   const reservasActivas = reservas.filter((r:any) => r.estado === 'activa').length
@@ -638,13 +503,13 @@ const Estadisticas = ({ habitaciones, reservas }: any) => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="grid md:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200"><p className="text-slate-600 text-sm font-medium">Habitaciones</p><p className="text-3xl font-bold text-slate-900">{totalHabitaciones}</p></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200"><p className="text-slate-600 text-sm font-medium">Total Habitaciones</p><p className="text-3xl font-bold text-slate-900">{totalHabitaciones}</p></div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-green-200 bg-green-50"><p className="text-green-700 text-sm font-medium">Disponibles</p><p className="text-3xl font-bold text-green-900">{habitacionesDisponibles}</p></div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-amber-200 bg-amber-50"><p className="text-amber-700 text-sm font-medium">Reservas Activas</p><p className="text-3xl font-bold text-amber-900">{reservasActivas}</p></div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-blue-200 bg-blue-50"><p className="text-blue-700 text-sm font-medium">Ingresos</p><p className="text-2xl font-bold text-blue-900">${ingresosCompletadas.toLocaleString('es-ES')}</p></div>
       </div>
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200"><h3 className="font-bold mb-4 text-lg text-slate-900">Ingresos Mensuales</h3><div style={{width:'100%',height:300}}><ResponsiveContainer><LineChart data={dataIngresos} margin={{top:5,right:20,left:-20,bottom:5}}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="name" stroke="#64748b"/><YAxis stroke="#64748b"/><Tooltip formatter={(value: number) => `$${value.toLocaleString('es-ES')}`}/><Line type="monotone" dataKey="Ingresos" stroke="#0F172A" strokeWidth={3} dot={{r:4}} activeDot={{r:8}}/></LineChart></ResponsiveContainer></div></div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200"><h3 className="font-bold mb-4 text-lg text-slate-900">Popularidad</h3><div style={{width:'100%',height:300}}><ResponsiveContainer><PieChart><Pie data={dataTipos} cx="50%" cy="50%" outerRadius={100} fill="#8884d8" dataKey="value" label={({name,percent})=>percent>0.05?`${name} (${(percent*100).toFixed(0)}%)`:''}>{dataTipos.map((entry:any, index:number) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}</Pie><Tooltip formatter={(value: number) => `${value} reservas`}/></PieChart></ResponsiveContainer></div></div>
       </div>
