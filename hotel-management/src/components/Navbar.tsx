@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { Hotel, LogOut, User, Settings, Menu, X } from 'lucide-react'
+import { Hotel, LogOut, User, Settings, Menu, X, Users } from 'lucide-react'
 
 export const Navbar = () => {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const [isMenuOpen, setIsMenuOpen] = useState(false) // Estado para el menú móvil
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const handleLogout = () => {
     logout()
@@ -25,52 +25,64 @@ export const Navbar = () => {
   }
 
   return (
-    <nav className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-2xl sticky top-0 z-40">
+    <nav className="bg-white/90 backdrop-blur-md border-b border-slate-200 text-slate-800 sticky top-0 z-40 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 md:h-20 items-center">
+        <div className="flex justify-between h-20 items-center">
           
           {/* Logo */}
           <div className="flex items-center flex-shrink-0">
             <Link to="/" className="flex items-center space-x-2 group">
-              <Hotel className="h-8 w-8 md:h-10 md:w-10 text-amber-400 group-hover:text-amber-300 transition-colors" />
-              <div>
-                <span className="text-xl md:text-2xl font-serif font-bold bg-gradient-to-r from-amber-200 to-amber-400 bg-clip-text text-transparent">
-                  Hotel Elegance
+              <div className="bg-teal-50 p-2 rounded-xl group-hover:bg-teal-100 transition-colors">
+                <Hotel className="h-8 w-8 text-teal-600" />
+              </div>
+              <div className="hidden min-[350px]:block">
+                <span className="text-xl md:text-2xl font-serif font-bold text-slate-800 tracking-tight group-hover:text-teal-700 transition-colors">
+                  HORIZONTE SUITES
                 </span>
-                <p className="text-[10px] md:text-xs text-slate-400 hidden sm:block">Lujo y Confort</p>
               </div>
             </Link>
           </div>
 
-          {/* --- MENÚ DE ESCRITORIO (Oculto en celular) --- */}
+          {/* Menú Desktop */}
           <div className="hidden md:flex items-center gap-4">
+            
+            {/* --- NUEVO LINK: NOSOTROS (Visible para todos) --- */}
+            <Link to="/nosotros" className="text-slate-600 hover:text-teal-600 font-medium px-4 py-2 transition-colors flex items-center gap-2">
+              <Users className="h-4 w-4" /> Nosotros
+            </Link>
+
             {user ? (
               <>
-                <Link to={getDashboardRoute()} className="flex items-center space-x-2 px-2 py-2 rounded-lg hover:bg-slate-700 transition-colors" title="Dashboard">
-                  <User className="h-5 w-5" />
-                  <span className="font-medium">{user.nombre.split(' ')[0]}</span>
+                <Link to={getDashboardRoute()} className="flex items-center gap-2 px-4 py-2 rounded-full hover:bg-slate-100 text-sm font-medium transition-all border border-transparent hover:border-slate-200">
+                  <User className="h-4 w-4 text-teal-600" />
+                  <span>{user.nombre.split(' ')[0]}</span>
                 </Link>
-                <Link to="/mi-perfil" className="flex items-center justify-center p-2 rounded-lg hover:bg-slate-700 transition-colors" title="Mi Perfil">
+                
+                <Link to="/mi-perfil" className="p-2 rounded-full hover:bg-slate-100 text-slate-600 hover:text-teal-600 transition-colors" title="Mi Perfil">
                   <Settings className="h-5 w-5" />
                 </Link>
-                <button onClick={handleLogout} className="flex items-center justify-center px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors font-medium">
-                  <LogOut className="h-5 w-5 mr-2" />
-                  <span>Salir</span>
+
+                <button onClick={handleLogout} className="flex items-center gap-2 px-5 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-full transition-colors text-sm font-semibold">
+                  <LogOut className="h-4 w-4" /> Salir
                 </button>
               </>
             ) : (
               <>
-                <Link to="/login" className="px-6 py-2 hover:bg-slate-700 rounded-lg transition-colors font-medium">Ingresar</Link>
-                <Link to="/register" className="px-6 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 rounded-lg transition-all font-medium shadow-lg">Registrarse</Link>
+                <Link to="/login" className="text-slate-600 hover:text-teal-600 font-medium px-4 py-2 transition-colors">
+                  Ingresar
+                </Link>
+                <Link to="/register" className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-full font-medium shadow-lg shadow-teal-200 hover:shadow-teal-300 transition-all transform hover:-translate-y-0.5">
+                  Registrarse
+                </Link>
               </>
             )}
           </div>
 
-          {/* --- BOTÓN HAMBURGUESA (Solo visible en celular) --- */}
+          {/* Botón Hamburguesa Móvil */}
           <div className="flex md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 rounded-md text-slate-300 hover:text-white hover:bg-slate-700 focus:outline-none"
+              className="p-2 rounded-lg text-slate-600 hover:bg-slate-100 focus:outline-none"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -78,41 +90,41 @@ export const Navbar = () => {
         </div>
       </div>
 
-      {/* --- MENÚ DESPLEGABLE MÓVIL --- */}
+      {/* Menú Móvil */}
       {isMenuOpen && (
-        <div className="md:hidden bg-slate-800 border-t border-slate-700 animate-in slide-in-from-top-5 duration-200">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+        <div className="md:hidden bg-white border-t border-slate-100 shadow-xl absolute w-full left-0 animate-in slide-in-from-top-5 duration-200">
+          <div className="px-4 pt-4 pb-6 space-y-2">
+            
+            {/* --- NUEVO LINK: NOSOTROS (Móvil) --- */}
+            <Link 
+              to="/nosotros" 
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-700 font-medium"
+            >
+              <Users className="h-5 w-5 text-teal-500" /> Nosotros
+            </Link>
+
             {user ? (
               <>
-                <div className="px-3 py-2 text-amber-400 font-bold border-b border-slate-700 mb-2">
-                  Hola, {user.nombre}
+                <div className="px-4 py-3 bg-teal-50 rounded-xl mb-4">
+                  <p className="text-xs text-teal-600 font-bold uppercase tracking-wider">Bienvenido</p>
+                  <p className="font-bold text-slate-800">{user.nombre}</p>
                 </div>
-                <Link 
-                  to={getDashboardRoute()} 
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center space-x-2 px-3 py-3 rounded-md text-base font-medium hover:bg-slate-700 hover:text-white"
-                >
-                  <User className="h-5 w-5" /> <span>Ir al Dashboard</span>
+                <Link to={getDashboardRoute()} onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-700 font-medium">
+                  <User className="h-5 w-5 text-teal-500" /> Ir al Dashboard
                 </Link>
-                <Link 
-                  to="/mi-perfil" 
-                  onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center space-x-2 px-3 py-3 rounded-md text-base font-medium hover:bg-slate-700 hover:text-white"
-                >
-                  <Settings className="h-5 w-5" /> <span>Mi Perfil</span>
+                <Link to="/mi-perfil" onClick={() => setIsMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 text-slate-700 font-medium">
+                  <Settings className="h-5 w-5 text-teal-500" /> Mi Perfil
                 </Link>
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center space-x-2 px-3 py-3 rounded-md text-base font-medium text-red-400 hover:bg-slate-700 hover:text-red-300"
-                >
-                  <LogOut className="h-5 w-5" /> <span>Cerrar Sesión</span>
+                <button onClick={handleLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-50 text-red-600 font-medium text-left mt-2">
+                  <LogOut className="h-5 w-5" /> Cerrar Sesión
                 </button>
               </>
             ) : (
-              <>
-                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium hover:bg-slate-700 hover:text-white">Iniciar Sesión</Link>
-                <Link to="/register" onClick={() => setIsMenuOpen(false)} className="block px-3 py-3 rounded-md text-base font-medium bg-amber-600 text-white hover:bg-amber-700 mt-2">Registrarse</Link>
-              </>
+              <div className="flex flex-col gap-3 mt-4 border-t border-slate-100 pt-4">
+                <Link to="/login" onClick={() => setIsMenuOpen(false)} className="w-full text-center py-3 rounded-xl border border-slate-200 font-bold text-slate-700">Iniciar Sesión</Link>
+                <Link to="/register" onClick={() => setIsMenuOpen(false)} className="w-full text-center py-3 rounded-xl bg-teal-600 text-white font-bold shadow-md">Registrarse</Link>
+              </div>
             )}
           </div>
         </div>

@@ -34,7 +34,7 @@ export const OperadorDashboard = () => {
     } catch (error) { console.error(error) } finally { setLoading(false) }
   }
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-16 w-16 border-b-2 border-amber-600"></div></div>
+  if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-16 w-16 border-b-2 border-teal-600"></div></div>
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -45,10 +45,10 @@ export const OperadorDashboard = () => {
         </div>
 
         <div className="flex flex-wrap gap-2 mb-8 border-b border-slate-200 pb-1">
-          <button onClick={() => setActiveTab('reservas')} className={`px-4 py-3 font-medium flex items-center gap-2 rounded-t-lg ${activeTab === 'reservas' ? 'bg-white text-amber-600 border-b-2 border-amber-600 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
+          <button onClick={() => setActiveTab('reservas')} className={`px-4 py-3 font-medium flex items-center gap-2 rounded-t-lg ${activeTab === 'reservas' ? 'bg-white text-teal-600 border-b-2 border-teal-600 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
             <Calendar className="h-5 w-5" /> Reservas
           </button>
-          <button onClick={() => setActiveTab('consultas')} className={`px-4 py-3 font-medium flex items-center gap-2 rounded-t-lg ${activeTab === 'consultas' ? 'bg-white text-amber-600 border-b-2 border-amber-600 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
+          <button onClick={() => setActiveTab('consultas')} className={`px-4 py-3 font-medium flex items-center gap-2 rounded-t-lg ${activeTab === 'consultas' ? 'bg-white text-teal-600 border-b-2 border-teal-600 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
             <MessageSquare className="h-5 w-5" /> Consultas
             {consultas.filter(c => c.estado === 'pendiente').length > 0 && <span className="bg-red-100 text-red-800 text-xs px-2 py-0.5 rounded-full ml-2 animate-pulse">{consultas.filter(c => c.estado === 'pendiente').length}</span>}
           </button>
@@ -81,9 +81,9 @@ const ListaReservas = ({ reservas, habitaciones, clientes, onRecargar }: any) =>
                 <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${r.estado === 'activa' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'}`}>{r.estado}</span>
               </div>
               <div className="bg-slate-50 rounded-lg p-4 mb-4 space-y-2 text-sm">
-                <div className="flex items-center gap-2 text-slate-700"><Bed className="h-4 w-4 text-amber-600" /><span className="font-medium">{h ? `Hab. ${h.numero} - ${h.tipo}` : 'Habitación no encontrada'}</span></div>
+                <div className="flex items-center gap-2 text-slate-700"><Bed className="h-4 w-4 text-teal-600" /><span className="font-medium">{h ? `Hab. ${h.numero} - ${h.tipo}` : 'Habitación no encontrada'}</span></div>
                 <div className="flex items-center gap-2 text-slate-600"><Calendar className="h-4 w-4" /><span>{new Date(r.fecha_entrada).toLocaleDateString()} ➔ {new Date(r.fecha_salida).toLocaleDateString()}</span></div>
-                <div className="pt-2 mt-2 border-t border-slate-200 flex justify-between"><span className="text-slate-500">Total:</span><span className="font-bold text-amber-600">${r.total}</span></div>
+                <div className="pt-2 mt-2 border-t border-slate-200 flex justify-between"><span className="text-slate-500">Total:</span><span className="font-bold text-teal-600">${r.total}</span></div>
               </div>
               {r.estado === 'activa' && (
                 <div className="grid grid-cols-3 gap-2">
@@ -123,10 +123,10 @@ const ListaConsultas = ({ consultas, clientes, onRecargar }: any) => {
           const contenido = parseMensaje(c.mensaje);
 
           return (
-            <div key={c.id} onClick={() => setConsultaSeleccionada(c)} className={`bg-white p-6 rounded-xl border cursor-pointer hover:shadow-md ${c.estado === 'pendiente' ? 'border-l-4 border-l-amber-500' : 'opacity-75'}`}>
+            <div key={c.id} onClick={() => setConsultaSeleccionada(c)} className={`bg-white p-6 rounded-xl border cursor-pointer hover:shadow-md ${c.estado === 'pendiente' ? 'border-l-4 border-l-teal-500' : 'opacity-75'}`}>
               <div className="flex justify-between mb-2">
                 <div><h3 className="font-bold text-slate-900">{c.asunto}</h3><p className="text-sm text-slate-500">De: {cli?.nombre}</p></div>
-                {c.estado === 'pendiente' ? <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded text-xs">Pendiente</span> : <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Respondida</span>}
+                {c.estado === 'pendiente' ? <span className="bg-teal-100 text-teal-800 px-2 py-1 rounded text-xs">Pendiente</span> : <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Respondida</span>}
               </div>
               
               {/* VISTA PREVIA */}
@@ -259,7 +259,7 @@ const ModalResponderConsulta = ({ consulta, cliente, onClose, onSuccess }: any) 
 
           <form onSubmit={handleResponder}>
             <textarea 
-              className="w-full border p-3 rounded h-32 focus:ring-2 focus:ring-amber-500 outline-none" 
+              className="w-full border p-3 rounded h-32 focus:ring-2 focus:ring-teal-500 outline-none" 
               placeholder="Escribe tu respuesta..." 
               value={respuesta} 
               onChange={e=>setRespuesta(e.target.value)} 
@@ -286,5 +286,5 @@ const ModalEditarReserva = ({ reserva, habitaciones, clientes, onClose, onSave }
     const [total, setTotal] = useState(reserva.total); const [error, setError] = useState(''); const cliente = clientes.find((c:any) => c.id === reserva.usuario_id);
     useEffect(() => { const h = habitaciones.find((x:any)=>x.id===formData.habitacion_id); if(h && formData.fecha_entrada && formData.fecha_salida) { const dias = Math.ceil((new Date(formData.fecha_salida + 'T00:00:00').getTime() - new Date(formData.fecha_entrada + 'T00:00:00').getTime())/(1000*60*60*24)); setTotal(dias > 0 ? dias * h.precio_noche : 0); } }, [formData, habitaciones]);
     const handleSubmit = async (e:any) => { e.preventDefault(); setError(''); try { if(new Date(formData.fecha_salida) <= new Date(formData.fecha_entrada)) throw new Error("Fechas inválidas"); const {data} = await supabase.functions.invoke('check-room-availability', { body: {...formData, reserva_id_excluir: reserva.id} }); if(!data?.data?.available) throw new Error('No disponible en esas fechas'); await supabase.from('reservas').update({...formData, total}).eq('id', reserva.id); onSave(); } catch(err:any) { setError(err.message); } };
-    return <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"><div className="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl"><h2 className="font-bold text-xl mb-4">Editar Reserva</h2><form onSubmit={handleSubmit} className="space-y-4">{error && <p className="text-red-700">{error}</p>}<select value={formData.habitacion_id} onChange={e=>setFormData({...formData, habitacion_id:e.target.value})} className="w-full border p-2 rounded">{habitaciones.map((h:any)=><option key={h.id} value={h.id}>{h.numero} - {h.tipo}</option>)}</select><div className="grid grid-cols-2 gap-2"><input type="date" value={formData.fecha_entrada} onChange={e=>setFormData({...formData, fecha_entrada:e.target.value})} className="border p-2 rounded"/><input type="date" value={formData.fecha_salida} onChange={e=>setFormData({...formData, fecha_salida:e.target.value})} className="border p-2 rounded"/></div><div className="flex justify-between font-bold"><span>Nuevo Total:</span><span>${total}</span></div><div className="flex gap-2"><button className="flex-1 bg-amber-600 text-white py-2 rounded">Guardar</button><button type="button" onClick={onClose} className="flex-1 bg-slate-200 py-2 rounded">Cancelar</button></div></form></div></div>
+    return <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"><div className="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl"><h2 className="font-bold text-xl mb-4">Editar Reserva</h2><form onSubmit={handleSubmit} className="space-y-4">{error && <p className="text-red-700">{error}</p>}<select value={formData.habitacion_id} onChange={e=>setFormData({...formData, habitacion_id:e.target.value})} className="w-full border p-2 rounded">{habitaciones.map((h:any)=><option key={h.id} value={h.id}>{h.numero} - {h.tipo}</option>)}</select><div className="grid grid-cols-2 gap-2"><input type="date" value={formData.fecha_entrada} onChange={e=>setFormData({...formData, fecha_entrada:e.target.value})} className="border p-2 rounded"/><input type="date" value={formData.fecha_salida} onChange={e=>setFormData({...formData, fecha_salida:e.target.value})} className="border p-2 rounded"/></div><div className="flex justify-between font-bold"><span>Nuevo Total:</span><span>${total}</span></div><div className="flex gap-2"><button className="flex-1 bg-teal-600 text-white py-2 rounded">Guardar</button><button type="button" onClick={onClose} className="flex-1 bg-slate-200 py-2 rounded">Cancelar</button></div></form></div></div>
 }

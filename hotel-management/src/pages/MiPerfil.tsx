@@ -100,7 +100,7 @@ const ModalCambiarPassword = ({ user_id, onClose, onSuccess }: { user_id: string
             />
           </div>
           <div className="flex gap-3 pt-4">
-            <button type="submit" disabled={loading} className="flex-1 px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium disabled:opacity-50">
+            <button type="submit" disabled={loading} className="flex-1 px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium disabled:opacity-50">
               {loading ? <RefreshCw className="animate-spin h-5 w-5 mx-auto" /> : 'Guardar Contraseña'}
             </button>
             <button type="button" onClick={onClose} disabled={loading} className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium disabled:opacity-50">
@@ -314,7 +314,7 @@ export const MiPerfil = () => {
                   type="text"
                   value={nombre}
                   onChange={(e) => setNombre(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none"
+                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none"
                   required
                 />
               </div>
@@ -345,7 +345,7 @@ export const MiPerfil = () => {
                 <button
                   type="submit"
                   disabled={loading || nombre === user.nombre}
-                  className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center gap-2 shadow-lg disabled:opacity-50"
+                  className="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium flex items-center gap-2 shadow-lg disabled:opacity-50"
                 >
                   <Save className="h-5 w-5" />
                   {loading ? 'Guardando...' : 'Guardar Nombre'}

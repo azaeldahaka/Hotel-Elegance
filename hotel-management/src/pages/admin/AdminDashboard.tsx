@@ -69,7 +69,7 @@ export const AdminDashboard = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-amber-600"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-teal-600"></div>
       </div>
     )
   }
@@ -86,19 +86,19 @@ export const AdminDashboard = () => {
 
         {/* --- AQUÍ ESTÁ EL ARREGLO PARA CELULAR (flex-wrap) --- */}
         <div className="flex flex-wrap gap-2 mb-8 border-b border-slate-200 pb-1">
-          <button onClick={() => setActiveTab('habitaciones')} className={`px-3 py-2 text-sm md:text-base font-medium flex items-center gap-2 rounded-t-lg transition-colors ${activeTab === 'habitaciones' ? 'bg-white text-amber-600 border-b-2 border-amber-600 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
+          <button onClick={() => setActiveTab('habitaciones')} className={`px-3 py-2 text-sm md:text-base font-medium flex items-center gap-2 rounded-t-lg transition-colors ${activeTab === 'habitaciones' ? 'bg-white text-teal-600 border-b-2 border-teal-600 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
             <Home className="h-4 w-4" /> Habitaciones
           </button>
-          <button onClick={() => setActiveTab('servicios')} className={`px-3 py-2 text-sm md:text-base font-medium flex items-center gap-2 rounded-t-lg transition-colors ${activeTab === 'servicios' ? 'bg-white text-amber-600 border-b-2 border-amber-600 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
+          <button onClick={() => setActiveTab('servicios')} className={`px-3 py-2 text-sm md:text-base font-medium flex items-center gap-2 rounded-t-lg transition-colors ${activeTab === 'servicios' ? 'bg-white text-teal-600 border-b-2 border-teal-600 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
             <Coffee className="h-4 w-4" /> Servicios
           </button>
-          <button onClick={() => setActiveTab('reservas')} className={`px-3 py-2 text-sm md:text-base font-medium flex items-center gap-2 rounded-t-lg transition-colors ${activeTab === 'reservas' ? 'bg-white text-amber-600 border-b-2 border-amber-600 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
+          <button onClick={() => setActiveTab('reservas')} className={`px-3 py-2 text-sm md:text-base font-medium flex items-center gap-2 rounded-t-lg transition-colors ${activeTab === 'reservas' ? 'bg-white text-teal-600 border-b-2 border-teal-600 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
             <Calendar className="h-4 w-4" /> Reservas
           </button>
-          <button onClick={() => setActiveTab('operadores')} className={`px-3 py-2 text-sm md:text-base font-medium flex items-center gap-2 rounded-t-lg transition-colors ${activeTab === 'operadores' ? 'bg-white text-amber-600 border-b-2 border-amber-600 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
+          <button onClick={() => setActiveTab('operadores')} className={`px-3 py-2 text-sm md:text-base font-medium flex items-center gap-2 rounded-t-lg transition-colors ${activeTab === 'operadores' ? 'bg-white text-teal-600 border-b-2 border-teal-600 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
             <Users className="h-4 w-4" /> Operadores
           </button>
-          <button onClick={() => setActiveTab('estadisticas')} className={`px-3 py-2 text-sm md:text-base font-medium flex items-center gap-2 rounded-t-lg transition-colors ${activeTab === 'estadisticas' ? 'bg-white text-amber-600 border-b-2 border-amber-600 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
+          <button onClick={() => setActiveTab('estadisticas')} className={`px-3 py-2 text-sm md:text-base font-medium flex items-center gap-2 rounded-t-lg transition-colors ${activeTab === 'estadisticas' ? 'bg-white text-teal-600 border-b-2 border-teal-600 shadow-sm' : 'text-slate-600 hover:bg-slate-100'}`}>
             <BarChart3 className="h-4 w-4" /> Estadísticas
           </button>
         </div>
@@ -174,7 +174,7 @@ const GestionServicios = ({ servicios, onRecargar }: { servicios: Servicio[], on
   return (
     <div>
       <div className="mb-6">
-        <button onClick={() => {setEditando(null); setFormData({ nombre: '', descripcion: '', precio: '', imagen_url: '' }); setShowModal(true)}} className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg flex items-center gap-2 shadow-lg transition-colors w-full md:w-auto justify-center">
+        <button onClick={() => {setEditando(null); setFormData({ nombre: '', descripcion: '', precio: '', imagen_url: '' }); setShowModal(true)}} className="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-lg flex items-center gap-2 shadow-lg transition-colors w-full md:w-auto justify-center">
           <Plus className="h-5 w-5" /> Nuevo Servicio
         </button>
       </div>
@@ -183,7 +183,7 @@ const GestionServicios = ({ servicios, onRecargar }: { servicios: Servicio[], on
           <div key={s.id} className="bg-white p-6 rounded-lg border shadow-sm hover:shadow-md transition-shadow">
             <h3 className="font-bold text-lg text-slate-900">{s.nombre}</h3>
             <p className="text-sm text-slate-600 mb-2 line-clamp-2">{s.descripcion}</p>
-            <p className="font-bold text-amber-600 mb-4">${s.precio.toLocaleString('es-ES')}</p>
+            <p className="font-bold text-teal-600 mb-4">${s.precio.toLocaleString('es-ES')}</p>
             <div className="flex gap-2">
               <button onClick={() => { setEditando(s); setFormData({ nombre: s.nombre, descripcion: s.descripcion, precio: s.precio.toString(), imagen_url: s.imagen_url || '' }); setShowModal(true) }} className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 rounded-lg text-sm font-medium transition-colors">Editar</button>
               <button onClick={() => handleDelete(s.id)} className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 py-2 rounded-lg text-sm font-medium transition-colors">Eliminar</button>
@@ -200,7 +200,7 @@ const GestionServicios = ({ servicios, onRecargar }: { servicios: Servicio[], on
               <textarea placeholder="Descripción" value={formData.descripcion} onChange={e => setFormData({...formData, descripcion: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required />
               <input type="number" placeholder="Precio" value={formData.precio} onChange={e => setFormData({...formData, precio: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required />
               <div className="flex gap-2 pt-2">
-                <button type="submit" className="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg font-medium transition-colors">Guardar</button>
+                <button type="submit" className="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-2 rounded-lg font-medium transition-colors">Guardar</button>
                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded-lg font-medium transition-colors">Cancelar</button>
               </div>
             </form>
@@ -298,12 +298,12 @@ const GestionHabitaciones = ({
       {/* HEADER */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
         <div><h2 className="text-xl font-bold text-slate-800">Inventario</h2><p className="text-slate-500 text-sm">Total visible: {habitacionesFiltradas.length}</p></div>
-        <button onClick={() => { resetForm(); setShowModal(true); }} className="px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium flex items-center gap-2 shadow-md transition-all w-full md:w-auto justify-center"><Plus className="h-5 w-5" /> Nueva Habitación</button>
+        <button onClick={() => { resetForm(); setShowModal(true); }} className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg font-medium flex items-center gap-2 shadow-md transition-all w-full md:w-auto justify-center"><Plus className="h-5 w-5" /> Nueva Habitación</button>
       </div>
 
       {/* FILTROS */}
       <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm mb-8">
-        <div className="flex items-center gap-2 mb-4 text-slate-800 font-semibold border-b border-slate-100 pb-2"><Filter className="h-4 w-4 text-amber-600" />Filtros de Búsqueda</div>
+        <div className="flex items-center gap-2 mb-4 text-slate-800 font-semibold border-b border-slate-100 pb-2"><Filter className="h-4 w-4 text-teal-600" />Filtros de Búsqueda</div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
           <div className="col-span-1"><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Número</label><div className="relative"><input type="text" placeholder="Ej: 101" value={filtroNumero} onChange={e => setFiltroNumero(e.target.value)} className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-lg outline-none text-sm"/><Home className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" /></div></div>
           <div><label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tipo</label><select value={filtroTipo} onChange={e => setFiltroTipo(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none text-sm bg-white"><option value="">Todos</option>{tipos.map(t => <option key={t.id} value={t.nombre}>{t.nombre}</option>)}</select></div>
@@ -324,7 +324,7 @@ const GestionHabitaciones = ({
             </div>
             
             <div className="mb-3">
-              <p className="text-2xl font-bold text-amber-600">${hab.precio_noche?.toLocaleString('es-ES')} <span className="text-sm text-slate-400 font-normal">/ noche</span></p>
+              <p className="text-2xl font-bold text-teal-600">${hab.precio_noche?.toLocaleString('es-ES')} <span className="text-sm text-slate-400 font-normal">/ noche</span></p>
               <p className="text-sm text-slate-500 mt-1 flex items-center gap-1"><Users className="h-3 w-3" /> Capacidad: {hab.capacidad} pax</p>
             </div>
 
@@ -344,7 +344,7 @@ const GestionHabitaciones = ({
       </div>
       
       {habitacionesFiltradas.length === 0 && (
-        <div className="text-center py-12 bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl"><Home className="h-10 w-10 text-slate-300 mx-auto mb-2"/><p className="text-slate-500">No se encontraron habitaciones.</p><button onClick={limpiarFiltros} className="text-amber-600 font-medium mt-2 hover:underline">Limpiar búsqueda</button></div>
+        <div className="text-center py-12 bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl"><Home className="h-10 w-10 text-slate-300 mx-auto mb-2"/><p className="text-slate-500">No se encontraron habitaciones.</p><button onClick={limpiarFiltros} className="text-teal-600 font-medium mt-2 hover:underline">Limpiar búsqueda</button></div>
       )}
 
       {/* MODAL FORMULARIO (IGUAL QUE ANTES) */}
@@ -360,9 +360,9 @@ const GestionHabitaciones = ({
                 <div><label className="text-sm font-medium text-slate-700">Capacidad</label><input type="number" value={formData.capacidad} onChange={e => setFormData({...formData, capacidad: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required /></div>
                 <div><label className="text-sm font-medium text-slate-700">Estado</label><select value={formData.estado} onChange={e => setFormData({...formData, estado: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg"><option value="disponible">Disponible</option><option value="ocupada">Ocupada</option><option value="mantenimiento">Mantenimiento</option></select></div>
               </div>
-              <div><label className="block text-sm font-medium text-slate-700 mb-2">Amenidades</label><div className="flex gap-2 mb-2"><input placeholder="Agregar nueva (ej: Netflix)" value={nuevaAmenidad} onChange={e => setNuevaAmenidad(e.target.value)} className="flex-1 border border-slate-300 p-2 rounded-lg text-sm" /><button type="button" onClick={handleCrearAmenidad} className="bg-green-600 hover:bg-green-700 text-white px-3 rounded-lg font-bold transition-colors">+</button></div><div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 border border-slate-300 rounded-lg bg-slate-50 max-h-40 overflow-y-auto">{amenidadesDisponibles.map(amenidad => (<label key={amenidad.id} className="flex items-center space-x-2 cursor-pointer"><input type="checkbox" checked={formData.amenidades.includes(amenidad.nombre)} onChange={() => handleAmenidadChange(amenidad.nombre)} className="rounded border-slate-300 text-amber-600 focus:ring-amber-500 h-4 w-4" /><span className="text-sm text-slate-700">{amenidad.nombre}</span></label>))}</div></div>
+              <div><label className="block text-sm font-medium text-slate-700 mb-2">Amenidades</label><div className="flex gap-2 mb-2"><input placeholder="Agregar nueva (ej: Netflix)" value={nuevaAmenidad} onChange={e => setNuevaAmenidad(e.target.value)} className="flex-1 border border-slate-300 p-2 rounded-lg text-sm" /><button type="button" onClick={handleCrearAmenidad} className="bg-green-600 hover:bg-green-700 text-white px-3 rounded-lg font-bold transition-colors">+</button></div><div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 border border-slate-300 rounded-lg bg-slate-50 max-h-40 overflow-y-auto">{amenidadesDisponibles.map(amenidad => (<label key={amenidad.id} className="flex items-center space-x-2 cursor-pointer"><input type="checkbox" checked={formData.amenidades.includes(amenidad.nombre)} onChange={() => handleAmenidadChange(amenidad.nombre)} className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4" /><span className="text-sm text-slate-700">{amenidad.nombre}</span></label>))}</div></div>
               <div><label className="text-sm font-medium text-slate-700">Descripción</label><textarea value={formData.descripcion} onChange={e => setFormData({...formData, descripcion: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" rows={3} /></div>
-              <div className="flex gap-3 pt-4"><button type="submit" className="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg font-medium">Guardar</button><button type="button" onClick={resetForm} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded-lg font-medium">Cancelar</button></div>
+              <div className="flex gap-3 pt-4"><button type="submit" className="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-2 rounded-lg font-medium">Guardar</button><button type="button" onClick={resetForm} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded-lg font-medium">Cancelar</button></div>
             </form>
           </div>
         </div>
@@ -418,7 +418,7 @@ const GestionReservas = ({ reservas, habitaciones, clientes, onRecargar }: any) 
                 <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${r.estado==='activa'?'bg-green-100 text-green-800':r.estado==='completada'?'bg-blue-100 text-blue-800':'bg-red-100 text-red-800'}`}>{r.estado}</span>
               </div>
               <p className="font-semibold text-slate-700 mb-2">{h ? `Habitación ${h.numero} (${h.tipo})` : 'Habitación eliminada'}</p>
-              <div className="text-sm text-slate-600 space-y-1 mb-4"><p>Check-in: {new Date(r.fecha_entrada).toLocaleDateString()}</p><p>Check-out: {new Date(r.fecha_salida).toLocaleDateString()}</p><p>Huéspedes: {r.num_huespedes}</p><p className="font-bold text-amber-600 pt-1">Total: ${r.total.toLocaleString('es-ES')}</p><p className="text-xs text-slate-400">Reservado el: {new Date(r.fecha_reserva).toLocaleDateString()}</p></div>
+              <div className="text-sm text-slate-600 space-y-1 mb-4"><p>Check-in: {new Date(r.fecha_entrada).toLocaleDateString()}</p><p>Check-out: {new Date(r.fecha_salida).toLocaleDateString()}</p><p>Huéspedes: {r.num_huespedes}</p><p className="font-bold text-teal-600 pt-1">Total: ${r.total.toLocaleString('es-ES')}</p><p className="text-xs text-slate-400">Reservado el: {new Date(r.fecha_reserva).toLocaleDateString()}</p></div>
               <div className="grid grid-cols-3 gap-2">
                 <button onClick={()=>handleOp(r.id, 'completada')} disabled={r.estado!=='activa'} className="bg-green-100 hover:bg-green-200 text-green-700 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1 disabled:opacity-50"><CheckCircle className="h-4 w-4"/> Ok</button>
                 <button onClick={()=>{setReservaAEditar(r);setShowModal(true)}} disabled={r.estado!=='activa'} className="bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-1 disabled:opacity-50"><Edit className="h-4 w-4"/> Edit</button>
@@ -467,8 +467,8 @@ const ModalEditarReserva = ({ reserva, habitaciones, clientes, onClose, onSave }
           {error && <p className="text-red-700 bg-red-50 p-3 rounded-lg text-sm flex gap-2"><AlertCircle className="h-4 w-4"/>{error}</p>}
           <div><label className="block text-sm font-medium text-slate-700 mb-1">Habitación</label><select value={formData.habitacion_id} onChange={e=>setFormData({...formData, habitacion_id:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg">{habitaciones.map((h:any)=><option key={h.id} value={h.id}>{h.numero} - {h.tipo} (${h.precio_noche})</option>)}</select></div>
           <div className="grid grid-cols-2 gap-4"><div><label className="block text-sm font-medium text-slate-700 mb-1">Entrada</label><input type="date" value={formData.fecha_entrada} onChange={e=>setFormData({...formData, fecha_entrada:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg"/></div><div><label className="block text-sm font-medium text-slate-700 mb-1">Salida</label><input type="date" value={formData.fecha_salida} onChange={e=>setFormData({...formData, fecha_salida:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg"/></div></div>
-          <div className="bg-slate-50 p-3 rounded-lg flex justify-between items-center"><span className="text-sm text-slate-600">Nuevo Total:</span><span className="font-bold text-amber-600 text-lg">${total.toLocaleString('es-ES')}</span></div>
-          <div className="flex gap-3 pt-2"><button type="submit" className="flex-1 bg-amber-600 text-white py-2 rounded-lg hover:bg-amber-700 font-medium">Guardar</button><button type="button" onClick={onClose} className="flex-1 bg-slate-200 text-slate-700 py-2 rounded-lg hover:bg-slate-300 font-medium">Cancelar</button></div>
+          <div className="bg-slate-50 p-3 rounded-lg flex justify-between items-center"><span className="text-sm text-slate-600">Nuevo Total:</span><span className="font-bold text-teal-600 text-lg">${total.toLocaleString('es-ES')}</span></div>
+          <div className="flex gap-3 pt-2"><button type="submit" className="flex-1 bg-teal-600 text-white py-2 rounded-lg hover:bg-teal-700 font-medium">Guardar</button><button type="button" onClick={onClose} className="flex-1 bg-slate-200 text-slate-700 py-2 rounded-lg hover:bg-slate-300 font-medium">Cancelar</button></div>
         </form>
       </div>
     </div>
@@ -485,9 +485,9 @@ const GestionOperadores = ({ operadores, onRecargar }: any) => {
 
   return (
     <div>
-      <div className="mb-6"><button onClick={()=>{setError('');setShowCreate(true)}} className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg flex items-center gap-2 shadow-lg transition-colors w-full md:w-auto justify-center"><Plus className="h-5 w-5"/>Nuevo Operador</button></div>
+      <div className="mb-6"><button onClick={()=>{setError('');setShowCreate(true)}} className="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white rounded-lg flex items-center gap-2 shadow-lg transition-colors w-full md:w-auto justify-center"><Plus className="h-5 w-5"/>Nuevo Operador</button></div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{operadores.map((o:any)=><div key={o.id} className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-shadow"><h3 className="font-bold text-lg text-slate-900">{o.nombre}</h3><p className="text-sm text-slate-600 mb-4">{o.email}</p><div className="flex gap-2"><button onClick={()=>handleEditClick(o)} className="flex-1 bg-blue-100 hover:bg-blue-200 text-blue-700 py-2 rounded-lg text-sm font-medium transition-colors">Editar</button><button onClick={()=>handleDelete(o.id)} className="flex-1 bg-red-100 hover:bg-red-200 text-red-700 py-2 rounded-lg text-sm font-medium transition-colors">Eliminar</button></div></div>)}</div>
-      {showCreate && <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"><div className="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl"><h2 className="text-2xl font-bold mb-4">Nuevo Operador</h2><form onSubmit={submitCreate} className="space-y-4">{error && <p className="text-red-700 bg-red-50 p-2 rounded text-sm">{error}</p>}<input placeholder="Nombre" value={form.nombre} onChange={e=>setForm({...form, nombre:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required/><input placeholder="Email" value={form.email} onChange={e=>setForm({...form, email:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required/><input type="password" placeholder="Pass" value={form.password} onChange={e=>setForm({...form, password:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required minLength={6}/><div className="flex gap-2 pt-2"><button className="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg font-medium">Crear</button><button type="button" onClick={()=>setShowCreate(false)} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded-lg font-medium">Cancelar</button></div></form></div></div>}
+      {showCreate && <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"><div className="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl"><h2 className="text-2xl font-bold mb-4">Nuevo Operador</h2><form onSubmit={submitCreate} className="space-y-4">{error && <p className="text-red-700 bg-red-50 p-2 rounded text-sm">{error}</p>}<input placeholder="Nombre" value={form.nombre} onChange={e=>setForm({...form, nombre:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required/><input placeholder="Email" value={form.email} onChange={e=>setForm({...form, email:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required/><input type="password" placeholder="Pass" value={form.password} onChange={e=>setForm({...form, password:e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" required minLength={6}/><div className="flex gap-2 pt-2"><button className="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-2 rounded-lg font-medium">Crear</button><button type="button" onClick={()=>setShowCreate(false)} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded-lg font-medium">Cancelar</button></div></form></div></div>}
       {showEdit && opEdit && <ModalEditarOperador operador={opEdit} onClose={()=>setShowEdit(false)} onSave={()=>{setShowEdit(false);onRecargar()}} />}
     </div>
   )
@@ -498,7 +498,7 @@ const ModalEditarOperador = ({ operador, onClose, onSave }: any) => {
   const [pass, setPass] = useState(''); const [adminPass, setAdminPass] = useState(''); const [loading, setLoading] = useState(false); const [error, setError] = useState('');
   const handleSubmit = async (e: any) => { e.preventDefault(); setLoading(true); setError(''); try { const { error: funcError } = await supabase.functions.invoke('admin-update-user', { body: { admin_id: adminUser?.id, admin_password: adminPass, target_user_id: operador.id, ...formData, nueva_password: pass || undefined } }); if (funcError) { const err = await funcError.context.json(); throw new Error(err.error.message); } onSave(); } catch (e: any) { setError(e.message); } finally { setLoading(false); } };
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"><div className="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl"><h2 className="text-2xl font-bold mb-4">Editar Operador</h2><form onSubmit={handleSubmit} className="space-y-4">{error && <p className="text-red-700 bg-red-50 p-2 rounded text-sm">{error}</p>}<input value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" placeholder="Nombre"/><input value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" placeholder="Email"/><select value={formData.rol} onChange={e => setFormData({...formData, rol: e.target.value as any})} className="w-full border border-slate-300 p-2 rounded-lg"><option value="operador">Operador</option><option value="administrador">Administrador</option></select><input type="password" placeholder="Nueva contraseña (opcional)" value={pass} onChange={e => setPass(e.target.value)} className="w-full border border-slate-300 p-2 rounded-lg"/><div className="bg-amber-50 p-3 rounded-lg border border-amber-200"><label className="text-sm font-bold text-amber-800 flex gap-2 items-center mb-1"><Shield className="h-4 w-4"/>Confirmar con TU contraseña:</label><input type="password" value={adminPass} onChange={e => setAdminPass(e.target.value)} className="w-full border border-amber-300 p-2 rounded-lg bg-white" required/></div><div className="flex gap-2 pt-2"><button disabled={loading} className="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-2 rounded-lg font-medium disabled:opacity-50">Guardar</button><button type="button" onClick={onClose} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded-lg font-medium disabled:opacity-50">Cancelar</button></div></form></div></div>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"><div className="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl"><h2 className="text-2xl font-bold mb-4">Editar Operador</h2><form onSubmit={handleSubmit} className="space-y-4">{error && <p className="text-red-700 bg-red-50 p-2 rounded text-sm">{error}</p>}<input value={formData.nombre} onChange={e => setFormData({...formData, nombre: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" placeholder="Nombre"/><input value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full border border-slate-300 p-2 rounded-lg" placeholder="Email"/><select value={formData.rol} onChange={e => setFormData({...formData, rol: e.target.value as any})} className="w-full border border-slate-300 p-2 rounded-lg"><option value="operador">Operador</option><option value="administrador">Administrador</option></select><input type="password" placeholder="Nueva contraseña (opcional)" value={pass} onChange={e => setPass(e.target.value)} className="w-full border border-slate-300 p-2 rounded-lg"/><div className="bg-teal-50 p-3 rounded-lg border border-teal-200"><label className="text-sm font-bold text-teal-800 flex gap-2 items-center mb-1"><Shield className="h-4 w-4"/>Confirmar con TU contraseña:</label><input type="password" value={adminPass} onChange={e => setAdminPass(e.target.value)} className="w-full border border-teal-300 p-2 rounded-lg bg-white" required/></div><div className="flex gap-2 pt-2"><button disabled={loading} className="flex-1 bg-teal-600 hover:bg-teal-700 text-white py-2 rounded-lg font-medium disabled:opacity-50">Guardar</button><button type="button" onClick={onClose} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 py-2 rounded-lg font-medium disabled:opacity-50">Cancelar</button></div></form></div></div>
   )
 }
 
@@ -527,7 +527,7 @@ const Estadisticas = ({ habitaciones, reservas }: any) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200"><p className="text-slate-600 text-sm font-medium">Total Habitaciones</p><p className="text-3xl font-bold text-slate-900">{totalHabitaciones}</p></div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-green-200 bg-green-50"><p className="text-green-700 text-sm font-medium">Disponibles</p><p className="text-3xl font-bold text-green-900">{habitacionesDisponibles}</p></div>
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-amber-200 bg-amber-50"><p className="text-amber-700 text-sm font-medium">Reservas Activas</p><p className="text-3xl font-bold text-amber-900">{reservasActivas}</p></div>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-teal-200 bg-teal-50"><p className="text-teal-700 text-sm font-medium">Reservas Activas</p><p className="text-3xl font-bold text-teal-900">{reservasActivas}</p></div>
         <div className="bg-white p-6 rounded-xl shadow-sm border border-blue-200 bg-blue-50"><p className="text-blue-700 text-sm font-medium">Ingresos</p><p className="text-2xl font-bold text-blue-900">${ingresosCompletadas.toLocaleString('es-ES')}</p></div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

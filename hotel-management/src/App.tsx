@@ -1,6 +1,8 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { Navbar } from './components/Navbar'
+// Importamos el Footer
+import { Footer } from './components/Footer' 
 import { Home } from './pages/Home'
 import { Login } from './pages/Login'
 import { Register } from './pages/Register'
@@ -10,74 +12,85 @@ import { Consultas } from './pages/usuario/Consultas'
 import { OperadorDashboard } from './pages/operador/OperadorDashboard'
 import { AdminDashboard } from './pages/admin/AdminDashboard'
 import { MiPerfil } from './pages/MiPerfil'
+import { Nosotros } from './pages/Nosotros'
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="min-h-screen bg-slate-50">
-          {/* La Navbar siempre visible para poder navegar */}
+        <div className="min-h-screen bg-slate-50 flex flex-col">
+          {/* La Navbar siempre visible arriba */}
           <Navbar />
           
-          <Routes>
-            {/* --- RUTAS PÚBLICAS (Cualquiera puede verlas) --- */}
-            <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            
-            {/* --- RUTAS PROTEGIDAS (Solo logueados) --- */}
-            
-            {/* Rutas de Usuario */}
-            <Route path="/usuario/dashboard" element={
-              <ProtectedRoute roles={['usuario']}>
-                <UsuarioDashboard />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/usuario/reservar/:id" element={
-              <ProtectedRoute roles={['usuario']}>
-                <CrearReserva />
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/usuario/consultas" element={
-              <ProtectedRoute roles={['usuario']}>
-                <Consultas />
-              </ProtectedRoute>
-            } />
-            
-            {/* Rutas de Operador */}
-            <Route path="/operador/dashboard" element={
-              <ProtectedRoute roles={['operador']}>
-                <OperadorDashboard />
-              </ProtectedRoute>
-            } />
-            
-            {/* Rutas de Administrador */}
-            <Route path="/admin/dashboard" element={
-              <ProtectedRoute roles={['administrador']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } />
-            
-            {/* Ruta de Perfil (Para todos) */}
-            <Route path="/mi-perfil" element={
-              <ProtectedRoute roles={['usuario', 'operador', 'administrador']}>
-                <MiPerfil />
-              </ProtectedRoute>
-            } />
-            
-            {/* --- RUTA POR DEFECTO (Cualquier error va al Home) --- */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-            
-          </Routes>
+          {/* El contenido principal crece para empujar el footer */}
+          <div className="flex-grow">
+            <Routes>
+              {/* --- RUTAS PÚBLICAS --- */}
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              
+              {/* --- RUTAS PROTEGIDAS --- */}
+              
+              {/* Rutas de Usuario */}
+              <Route path="/usuario/dashboard" element={
+                <ProtectedRoute roles={['usuario']}>
+                  <UsuarioDashboard />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/usuario/reservar/:id" element={
+                <ProtectedRoute roles={['usuario']}>
+                  <CrearReserva />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/usuario/consultas" element={
+                <ProtectedRoute roles={['usuario']}>
+                  <Consultas />
+                </ProtectedRoute>
+              } />
+              
+              {/* Rutas de Operador */}
+              <Route path="/operador/dashboard" element={
+                <ProtectedRoute roles={['operador']}>
+                  <OperadorDashboard />
+                </ProtectedRoute>
+              } />
+              
+              {/* Rutas de Administrador */}
+              <Route path="/admin/dashboard" element={
+                <ProtectedRoute roles={['administrador']}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              } />
+              
+              {/* Ruta de Perfil (Para todos) */}
+              <Route path="/mi-perfil" element={
+                <ProtectedRoute roles={['usuario', 'operador', 'administrador']}>
+                  <MiPerfil />
+                </ProtectedRoute>
+              } />
+              
+              {/* --- RUTA POR DEFECTO --- */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+
+              <Route path="/nosotros" element={<Nosotros />} />
+              
+            </Routes>
+          </div>
+
+          {/* --- FOOTER (¡AQUÍ ESTÁ EL ARREGLO!) --- */}
+          {/* Está AFUERA de <Routes> pero DENTRO del Router */}
+          <Footer /> 
+          
         </div>
       </Router>
     </AuthProvider>
   )
 }
 
-// Componente de seguridad
+// Componente de seguridad (Sin cambios)
 const ProtectedRoute = ({ 
   children, 
   roles 
@@ -96,12 +109,10 @@ const ProtectedRoute = ({
   }
 
   if (!user) {
-    // Si no está logueado, lo mandamos al login
     return <Navigate to="/login" replace />
   }
 
   if (!roles.includes(user.rol)) {
-    // Si está logueado pero no tiene permiso, al Home
     return <Navigate to="/" replace />
   }
 

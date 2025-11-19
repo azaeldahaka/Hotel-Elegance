@@ -202,7 +202,7 @@ export const Consultas = () => {
             <form onSubmit={handleEnviarConsulta} className="space-y-4">
               <input type="text" placeholder="Asunto" className="w-full p-3 border rounded-lg" value={nuevoAsunto} onChange={e => setNuevoAsunto(e.target.value)} required />
               <textarea placeholder="Escribe tu mensaje aquí..." className="w-full p-3 border rounded-lg h-32" value={nuevoMensaje} onChange={e => setNuevoMensaje(e.target.value)} required />
-              <button type="submit" className="px-6 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700">Enviar</button>
+              <button type="submit" className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700">Enviar</button>
             </form>
           </div>
         )}

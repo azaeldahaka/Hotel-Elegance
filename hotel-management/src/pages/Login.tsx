@@ -60,8 +60,8 @@ export const Login = () => {
         </button>
 
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-amber-100 rounded-full mb-3">
-            <Hotel className="h-7 w-7 text-amber-600" />
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-teal-100 rounded-full mb-3">
+            <Hotel className="h-7 w-7 text-teal-600" />
           </div>
           <h2 className="text-2xl md:text-3xl font-serif font-bold text-slate-900">Iniciar Sesión</h2>
           <p className="text-slate-600 mt-2 text-sm md:text-base">Bienvenido de vuelta a Hotel Elegance</p>
@@ -81,7 +81,7 @@ export const Login = () => {
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Mail className="h-5 w-5 text-slate-400" />
               </div>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" placeholder="tu@email.com" required />
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none" placeholder="tu@email.com" required />
             </div>
           </div>
 
@@ -91,11 +91,11 @@ export const Login = () => {
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Lock className="h-5 w-5 text-slate-400" />
               </div>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" placeholder="••••••" required />
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none" placeholder="••••••" required />
             </div>
           </div>
 
-          <button type="submit" disabled={loading} className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-white bg-amber-600 hover:bg-amber-700 focus:outline-none font-semibold transition-all disabled:opacity-50">
+          <button type="submit" disabled={loading} className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none font-semibold transition-all disabled:opacity-50">
             {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Iniciar Sesión'}
           </button>
         </form>
@@ -114,7 +114,7 @@ export const Login = () => {
         <div className="mt-6 text-center">
           <p className="text-slate-600 text-sm">
             ¿No tienes cuenta?{' '}
-            <Link to="/register" className="font-medium text-amber-600 hover:text-amber-500">Regístrate aquí</Link>
+            <Link to="/register" className="font-medium text-teal-600 hover:text-teal-500">Regístrate aquí</Link>
           </p>
         </div>
       </div>

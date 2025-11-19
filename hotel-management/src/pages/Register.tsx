@@ -44,8 +44,8 @@ export const Register = () => {
         <button onClick={() => navigate('/')} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
 
         <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-amber-100 rounded-full mb-3">
-            <Hotel className="h-7 w-7 text-amber-600" />
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-teal-100 rounded-full mb-3">
+            <Hotel className="h-7 w-7 text-teal-600" />
           </div>
           <h2 className="text-2xl md:text-3xl font-serif font-bold text-slate-900">Crear Cuenta</h2>
           <p className="text-slate-600 mt-2 text-sm">Únete a Hotel Elegance</p>
@@ -54,10 +54,10 @@ export const Register = () => {
         {error && (<div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center space-x-2 text-red-700 text-sm"><AlertCircle className="h-5 w-5 flex-shrink-0" /><span>{error}</span></div>)}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div><label className="block text-sm font-medium text-slate-700 mb-1">Nombre Completo</label><div className="relative"><div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><User className="h-5 w-5 text-slate-400" /></div><input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" placeholder="Juan Pérez" required /></div></div>
-          <div><label className="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label><div className="relative"><div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Mail className="h-5 w-5 text-slate-400" /></div><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" placeholder="tu@email.com" required /></div></div>
-          <div><label className="block text-sm font-medium text-slate-700 mb-1">Contraseña</label><div className="relative"><div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Lock className="h-5 w-5 text-slate-400" /></div><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none" placeholder="Mínimo 6 caracteres" minLength={6} required /></div></div>
-          <button type="submit" disabled={loading} className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-white bg-amber-600 hover:bg-amber-700 focus:outline-none font-semibold transition-all disabled:opacity-50">{loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Crear Cuenta'}</button>
+          <div><label className="block text-sm font-medium text-slate-700 mb-1">Nombre Completo</label><div className="relative"><div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><User className="h-5 w-5 text-slate-400" /></div><input type="text" value={nombre} onChange={(e) => setNombre(e.target.value)} className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none" placeholder="Juan Pérez" required /></div></div>
+          <div><label className="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label><div className="relative"><div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Mail className="h-5 w-5 text-slate-400" /></div><input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none" placeholder="tu@email.com" required /></div></div>
+          <div><label className="block text-sm font-medium text-slate-700 mb-1">Contraseña</label><div className="relative"><div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Lock className="h-5 w-5 text-slate-400" /></div><input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 outline-none" placeholder="Mínimo 6 caracteres" minLength={6} required /></div></div>
+          <button type="submit" disabled={loading} className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none font-semibold transition-all disabled:opacity-50">{loading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Crear Cuenta'}</button>
         </form>
 
         <div className="mt-6">
@@ -68,7 +68,7 @@ export const Register = () => {
           </button>
         </div>
 
-        <div className="mt-6 text-center"><p className="text-slate-600 text-sm">¿Ya tienes cuenta? <Link to="/login" className="font-medium text-amber-600 hover:text-amber-500">Inicia sesión</Link></p></div>
+        <div className="mt-6 text-center"><p className="text-slate-600 text-sm">¿Ya tienes cuenta? <Link to="/login" className="font-medium text-teal-600 hover:text-teal-500">Inicia sesión</Link></p></div>
       </div>
     </div>
   )
