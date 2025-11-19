@@ -4,7 +4,7 @@
 
 ## 🚀 Demo en Vivo
 ¡Probá la aplicación ahora mismo!
-**🌐 [https://hotelelegance.netlify.app/](https://horizontesuites.netlify.app/)**
+**🌐 [https://horizontesuites.netlify.app/](https://horizontesuites.netlify.app/)**
 
 ---
 
